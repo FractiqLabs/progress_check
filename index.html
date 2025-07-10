@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特養入居進捗管理アプリ</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { ChevronRight, Plus, ArrowLeft, Heart, MessageCircle } = lucide;
+
+        const CareFacilityApp = () => {
+          const [currentView, setCurrentView] = React.useState('list');
+          const [selectedApplicant, setSelectedApplicant] = React.useState(null);
+          const [applicants, setApplicants] = React.useState([
+            {
+              id: 1,
+              applicationDate: '2024-12-15',
+              name: '田中太郎',
+              age: 85,
+              careLevel: '要介護3',
+              status: '実調完了',
+              assignee: '佐藤花子',
+              kp: '田中花子（長女）',
+              kpContact: '090-1234-5678',
+              careManager: '山田ケアマネ',
+              cmContact: '048-123-4567',
+              timeline: [
+                {
+                  id: 2,
+                  author: '佐藤花子',
+                  timestamp: '12月18日',
+                  content: '実調完了\nADL良好、認知症なし。家族の協力体制◎\n特記事項：夜間のトイレ介助が必要',
+                  action: '実調完了',
+                  replies: []
+                },
+                {
+                  id: 1,
+                  author: '佐藤花子',
+                  timestamp: '12月15日',
+                  content: '申込書受領・台帳入力完了\n紹介元：○○居宅 山田ケアマネ',
+                  action: '申込書受領',
+                  replies: []
+                }
+              ]
+            },
+            {
+              id: 2,
+              applicationDate: '2024-12-20',
+              name: '山田花子',
+              age: 78,
+              careLevel: '要介護4',
+              status: '申込書受領',
+              assignee: '鈴木一郎',
+              kp: '山田太郎（長男）',
+              kpContact: '080-9876-5432',
+              careManager: '佐藤ケアマネ',
+              cmContact: '048-987-6543',
+              timeline: [
+                {
+                  id: 1,
+                  author: '鈴木一郎',
+                  timestamp: '12月20日',
+                  content: '申込書受領・台帳入力完了\n紹介元：△△病院 SW田中',
+                  action: '申込書受領',
+                  replies: []
+                }
+              ]
+            },
+            {
+              id: 3,
+              applicationDate: '2024-12-10',
+              name: '佐藤三郎',
+              age: 92,
+              careLevel: '要介護5',
+              status: '健康診断書待ち',
+              assignee: '高橋美代子',
+              kp: '佐藤京子（長女）',
+              kpContact: '070-1111-2222',
+              careManager: '田中ケアマネ',
+              cmContact: '048-111-2222',
+              timeline: [
+                {
+                  id: 3,
+                  author: '高橋美代子',
+                  timestamp: '12月14日',
+                  content: '健康診断書を家族に依頼\n主治医：○○病院 山田先生',
+                  action: '健康診断書依頼',
+                  replies: []
+                },
+                {
+                  id: 2,
+                  author: '高橋美代子',
+                  timestamp: '12月12日',
+                  content: '実調完了\n重度の認知症あり。医療的ケア多数\n要検討事項：夜間の見守り体制',
+                  action: '実調完了',
+                  replies: []
+                },
+                {
+                  id: 1,
+                  author: '高橋美代子',
+                  timestamp: '12月10日',
+                  content: '申込書受領・台帳入力完了\n紹介元：○○病院 SW佐藤',
+                  action: '申込書受領',
+                  replies: []
+                }
+              ]
+            }
+          ]);
+
+          const [newPost, setNewPost] = React.useState('');
+          const [showPostForm, setShowPostForm] = React.useState(false);
+          const [postType, setPostType] = React.useState('');
+          const [replyTo, setReplyTo] = React.useState(null);
+          const [likes, setLikes] = React.useState({});
+          const [showActions, setShowActions] = React.useState(false);
+
+          const getStatusColor = (status, applicationDate) => {
+            const today = new Date();
+            const appDate = new Date(applicationDate);
+            const daysPassed = Math.floor((today - appDate) / (1000 * 60 * 60 * 24));
+            
+            if (daysPassed > 10) return 'bg-red-100 border-red-300 text-red-800';
+            if (daysPassed > 5) return 'bg-yellow-100 border-yellow-300 text-yellow-800';
+            return 'bg-green-100 border-green-300 text-green-800';
+          };
+
+          const formatTimeAgo = (timestamp) => {
+            const today = new Date();
+            const date = new Date(timestamp);
+            const diffTime = Math.abs(today - date);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return '今日';
+            if (diffDays === 1) return '1日前';
+            if (diffDays < 7) return `${diffDays}日前`;
+            return timestamp;
+          };
+
+          const handleStatusUpdate = (type) => {
+            setPostType(type);
+            setShowPostForm(true);
+            setReplyTo(null);
+          };
+
+          const handleReply = (postId) => {
+            setReplyTo(postId);
+            setShowPostForm(true);
+            setPostType('');
+          };
+
+          const handleFreePost = () => {
+            setPostType('');
+            setShowPostForm(true);
+            setReplyTo(null);
+          };
+
+          const handleLike = (applicantId, postId) => {
+            const key = `${applicantId}-${postId}`;
+            setLikes(prev => ({
+              ...prev,
+              [key]: !prev[key]
+            }));
+          };
+
+          const submitPost = () => {
+            if (!newPost.trim()) return;
+            
+            const updatedApplicants = applicants.map(app => {
+              if (app.id === selectedApplicant.id) {
+                if (replyTo) {
+                  const updatedTimeline = app.timeline.map(post => {
+                    if (post.id === replyTo) {
+                      return {
+                        ...post,
+                        replies: [...(post.replies || []), {
+                          id: Date.now(),
+                          author: app.assignee,
+                          timestamp: '今',
+                          content: newPost
+                        }]
+                      };
+                    }
+                    return post;
+                  });
+                  return { ...app, timeline: updatedTimeline };
+                } else {
+                  const newTimelineItem = {
+                    id: app.timeline.length + 1,
+                    author: app.assignee,
+                    timestamp: '今',
+                    content: newPost,
+                    action: postType || null,
+                    replies: []
+                  };
+                  
+                  let newStatus = app.status;
+                  if (postType === '実調完了') newStatus = '健康診断書待ち';
+                  if (postType === '健康診断書受領') newStatus = '判定会議中';
+                  if (postType === '判定会議中') newStatus = '入居決定';
+                  if (postType === '入居決定') newStatus = '入居日調整中';
+                  if (postType === '書類送付済') newStatus = '入居準備中';
+                  if (postType === '入居完了') newStatus = '入居完了';
+                  
+                  return {
+                    ...app,
+                    status: newStatus,
+                    timeline: [newTimelineItem, ...app.timeline]
+                  };
+                }
+              }
+              return app;
+            });
+            
+            setApplicants(updatedApplicants);
+            
+            const updatedSelected = updatedApplicants.find(app => app.id === selectedApplicant.id);
+            setSelectedApplicant(updatedSelected);
+            
+            setNewPost('');
+            setShowPostForm(false);
+            setPostType('');
+            setReplyTo(null);
+          };
+
+          const StatusButtons = ({ currentStatus }) => {
+            const allActions = [
+              '申込書受領',
+              '実調日程調整中',
+              '実調完了', 
+              '健康診断書依頼',
+              '健康診断書受領',
+              '判定会議中',
+              '入居決定',
+              '入居日調整中',
+              '書類送付済',
+              '入居準備完了',
+              '入居完了'
+            ];
+
+            const completedActions = selectedApplicant.timeline
+              .filter(item => item.action)
+              .map(item => item.action);
+
+            return React.createElement('div', { className: 'space-y-2' },
+              allActions.map((action, index) => {
+                const isCompleted = completedActions.includes(action);
+                
+                return React.createElement('button', {
+                  key: index,
+                  onClick: () => handleStatusUpdate(action),
+                  disabled: isCompleted,
+                  className: `w-full px-4 py-3 rounded-xl transition-all text-left ${
+                    isCompleted 
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                      : 'bg-blue-500 text-white hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5'
+                  }`
+                }, `${isCompleted ? '✓ ' : ''}${action}`);
+              })
+            );
+          };
+
+          if (currentView === 'detail' && selectedApplicant) {
+            return React.createElement('div', { className: 'min-h-screen bg-gray-50 p-6' },
+              React.createElement('div', { className: 'max-w-6xl mx-auto' },
+                React.createElement('div', { className: 'bg-white rounded-lg shadow p-6 mb-6' },
+                  React.createElement('button', {
+                    onClick: () => setCurrentView('list'),
+                    className: 'flex items-center text-blue-600 mb-4 hover:text-blue-800'
+                  },
+                    React.createElement(ArrowLeft, { className: 'w-4 h-4 mr-2' }),
+                    '一覧に戻る'
+                  ),
+                  
+                  React.createElement('div', { className: 'flex justify-between items-start mb-4' },
+                    React.createElement('div', null,
+                      React.createElement('h1', { className: 'text-2xl font-bold text-gray-900 mb-2' },
+                        `${selectedApplicant.name}さん (${selectedApplicant.age}歳・${selectedApplicant.careLevel})`
+                      ),
+                      React.createElement('div', { 
+                        className: `inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedApplicant.status, selectedApplicant.applicationDate)}`
+                      }, selectedApplicant.status)
+                    )
+                  ),
+
+                  React.createElement('div', { className: 'grid grid-cols-2 gap-6 mt-6' },
+                    React.createElement('div', null,
+                      React.createElement('h3', { className: 'font-semibold text-gray-700 mb-2' }, '基本情報'),
+                      React.createElement('div', { className: 'space-y-2 text-sm' },
+                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, '申込日: '), selectedApplicant.applicationDate),
+                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, '担当者: '), selectedApplicant.assignee)
+                      )
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('h3', { className: 'font-semibold text-gray-700 mb-2' }, '連絡先'),
+                      React.createElement('div', { className: 'space-y-2 text-sm' },
+                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, 'KP: '), selectedApplicant.kp),
+                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, 'KP連絡先: '), selectedApplicant.kpContact),
+                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, '在宅ケアマネ: '), selectedApplicant.careManager),
+                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, 'CM連絡先: '), selectedApplicant.cmContact)
+                      )
+                    )
+                  )
+                ),
+
+                React.createElement('div', { className: 'grid grid-cols-4 gap-6 h-screen' },
+                  React.createElement('div', { className: 'col-span-3 flex flex-col' },
+                    React.createElement('div', { className: 'bg-white rounded-lg shadow flex-1 flex flex-col' },
+                      React.createElement('div', { className: 'sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10' },
+                        React.createElement('div', { className: 'flex justify-between items-center' },
+                          React.createElement('h2', { className: 'text-lg font-semibold' }, 'タイムライン'),
+                          React.createElement('button', {
+                            onClick: handleFreePost,
+                            className: 'px-8 py-3 bg-green-500 text-white rounded-full hover:bg-green-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium'
+                          }, '投稿')
+                        )
+                      ),
+
+                      React.createElement('div', { className: 'flex-1 overflow-y-auto' },
+                        showPostForm && React.createElement('div', { className: 'sticky top-0 bg-white z-20 p-6 border-b border-gray-200' },
+                          React.createElement('div', { className: 'p-4 border-2 border-blue-200 rounded-lg bg-blue-50 shadow-lg' },
+                            postType && React.createElement('div', { className: 'mb-2 font-medium text-blue-800' }, postType),
+                            replyTo && React.createElement('div', { className: 'mb-2 text-sm text-gray-600' },
+                              `返信先: ${selectedApplicant.timeline.find(t => t.id === replyTo)?.author}`
+                            ),
+                            !postType && !replyTo && React.createElement('div', { className: 'mb-2 font-medium text-green-800' }, 'メモを追加'),
+                            React.createElement('textarea', {
+                              value: newPost,
+                              onChange: (e) => setNewPost(e.target.value),
+                              className: 'w-full p-3 border border-gray-300 rounded-lg resize-none',
+                              rows: 3,
+                              placeholder: 'メモを入力してください...',
+                              autoFocus: true
+                            }),
+                            React.createElement('div', { className: 'flex justify-end gap-2 mt-3' },
+                              React.createElement('button', {
+                                onClick: () => {
+                                  setShowPostForm(false);
+                                  setPostType('');
+                                  setReplyTo(null);
+                                },
+                                className: 'px-4 py-2 text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-all'
+                              }, 'キャンセル'),
+                              React.createElement('button', {
+                                onClick: submitPost,
+                                className: 'px-8 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium'
+                              }, '投稿')
+                            )
+                          )
+                        ),
+
+                        React.createElement('div', { className: 'p-6 pt-0' },
+                          React.createElement('div', { className: 'space-y-6 mt-6' },
+                            selectedApplicant.timeline.map((item, index) =>
+                              React.createElement('div', { key: item.id, className: 'border-l-2 border-gray-200 pl-6 pb-4' },
+                                React.createElement('div', { className: 'flex items-center justify-between mb-2' },
+                                  React.createElement('div', { className: 'flex items-center' },
+                                    React.createElement('span', { className: 'font-medium text-gray-900' }, item.author),
+                                    React.createElement('span', { className: 'text-gray-500 text-sm ml-2' }, `· ${formatTimeAgo(item.timestamp)}`),
+                                    item.action && React.createElement('span', { 
+                                      className: `ml-2 px-2 py-1 text-xs rounded-full font-medium ${
+                                        item.action === '入居完了' 
+                                          ? 'bg-red-100 text-red-800' 
+                                          : 'bg-blue-100 text-blue-800'
+                                      }`
+                                    }, item.action)
+                                  )
+                                ),
+                                React.createElement('div', { className: 'text-gray-700 whitespace-pre-line mb-3' }, item.content),
+                                
+                                React.createElement('div', { className: 'flex items-center gap-4 text-gray-500' },
+                                  React.createElement('button', {
+                                    onClick: () => handleLike(selectedApplicant.id, item.id),
+                                    className: `flex items-center gap-1 hover:text-red-500 transition-colors ${
+                                      likes[`${selectedApplicant.id}-${item.id}`] ? 'text-red-500' : ''
+                                    }`
+                                  },
+                                    React.createElement(Heart, { 
+                                      className: `w-4 h-4 ${
+                                        likes[`${selectedApplicant.id}-${item.id}`] ? 'fill-current' : ''
+                                      }`
+                                    }),
+                                    React.createElement('span', { className: 'text-sm' },
+                                      likes[`${selectedApplicant.id}-${item.id}`] ? '1' : '0'
+                                    )
+                                  ),
+                                  React.createElement('button', {
+                                    onClick: () => handleReply(item.id),
+                                    className: 'flex items-center gap-1 hover:text-blue-500 transition-colors'
+                                  },
+                                    React.createElement(MessageCircle, { className: 'w-4 h-4' }),
+                                    React.createElement('span', { className: 'text-sm' }, '返信')
+                                  )
+                                ),
+
+                                item.replies && item.replies.length > 0 && React.createElement('div', { className: 'mt-4 space-y-3' },
+                                  item.replies.map((reply) =>
+                                    React.createElement('div', { key: reply.id, className: 'ml-6 pl-4 border-l border-gray-300' },
+                                      React.createElement('div', { className: 'flex items-center mb-1' },
+                                        React.createElement('span', { className: 'font-medium text-gray-900 text-sm' }, reply.author),
+                                        React.createElement('span', { className: 'text-gray-500 text-xs ml-2' }, `· ${formatTimeAgo(reply.timestamp)}`)
+                                      ),
+                                      React.createElement('div', { className: 'text-gray-700 text-sm whitespace-pre-line' }, reply.content)
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  ),
+
+                  React.createElement('div', { className: 'flex flex-col' },
+                    React.createElement('div', { className: 'bg-white rounded-lg shadow flex-1 flex flex-col' },
+                      React.createElement('div', { className: 'sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10' },
+                        React.createElement('div', { className: 'flex justify-between items-center' },
+                          React.createElement('h2', { className: 'text-lg font-semibold' }, 'アクション'),
+                          React.createElement('button', {
+                            onClick: () => setShowActions(!showActions),
+                            className: 'px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5 transition-all'
+                          }, showActions ? '閉じる' : '表示')
+                        )
+                      ),
+                      
+                      showActions && React.createElement('div', { className: 'flex-1 overflow-y-auto p-6 pt-0' },
+                        React.createElement('div', { className: 'mt-6' },
+                          React.createElement(StatusButtons, { currentStatus: selectedApplicant.status })
+                        )
+                      ),
+                      
+                      !showActions && React.createElement('div', { className: 'flex-1 flex items-center justify-center p-6' },
+                        React.createElement('div', { className: 'text-center text-gray-500' },
+                          React.createElement('div', { className: 'text-lg mb-2' }, '📋'),
+                          React.createElement('div', { className: 'text-sm' }, '「表示」ボタンでアクション一覧を確認できます')
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            );
+          }
+
+          return React.createElement('div', { className: 'min-h-screen bg-gray-50 p-6' },
+            React.createElement('div', { className: 'max-w-6xl mx-auto' },
+              React.createElement('div', { className: 'bg-white rounded-lg shadow p-6 mb-6' },
+                React.createElement('h1', { className: 'text-2xl font-bold text-gray-900' }, '特養入居進捗管理'),
+                React.createElement('p', { className: 'text-gray-600 mt-2' }, '入居希望者の進捗状況を管理します')
+              ),
+
+              React.createElement('div', { className: 'bg-white rounded-lg shadow' },
+                React.createElement('div', { className: 'p-6' },
+                  React.createElement('div', { className: 'flex justify-between items-center mb-4' },
+                    React.createElement('h2', { className: 'text-lg font-semibold' }, '申込者一覧'),
+                    React.createElement('div', { className: 'flex items-center gap-4' },
+                      React.createElement('span', { className: 'text-sm text-gray-500' }, `${applicants.length}件`),
+                      React.createElement('button', { className: 'px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5 transition-all' }, '新規登録')
+                    )
+                  ),
+
+                  React.createElement('div', { className: 'overflow-x-auto' },
+                    React.createElement('table', { className: 'w-full' },
+                      React.createElement('thead', null,
+                        React.createElement('tr', { className: 'border-b border-gray-200' },
+                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '申込日'),
+                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '名前'),
+                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '年齢'),
+                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '要介護度'),
+                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, 'ステータス'),
+                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '')
+                        )
+                      ),
+                      React.createElement('tbody', null,
+                        applicants.map((applicant) =>
+                          React.createElement('tr', {
+                            key: applicant.id,
+                            className: 'border-b border-gray-100 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200',
+                            onClick: () => {
+                              setSelectedApplicant(applicant);
+                              setCurrentView('detail');
+                            }
+                          },
+                            React.createElement('td', { className: 'py-3 px-4 text-gray-900' }, applicant.applicationDate),
+                            React.createElement('td', { className: 'py-3 px-4 font-medium text-gray-900' }, applicant.name),
+                            React.createElement('td', { className: 'py-3 px-4 text-gray-700' }, `${applicant.age}歳`),
+                            React.createElement('td', { className: 'py-3 px-4 text-gray-700' }, applicant.careLevel),
+                            React.createElement('td', { className: 'py-3 px-4' },
+                              React.createElement('span', { 
+                                className: `inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(applicant.status, applicant.applicationDate)}`
+                              }, applicant.status)
+                            ),
+                            React.createElement('td', { className: 'py-3 px-4' },
+                              React.createElement(ChevronRight, { className: 'w-4 h-4 text-gray-400' })
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          );
+        };
+
+        ReactDOM.render(React.createElement(CareFacilityApp), document.getElementById('root'));
+    </script>
+</body>
+</html>

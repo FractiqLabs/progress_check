@@ -1,84 +1,536 @@
+import React, { useState } from 'react';
+import { ChevronRight, Plus, ArrowLeft, Heart, MessageCircle } from 'lucide-react';
 
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>入退去手続きチェックリスト</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; }
-        .container { max-width: 900px; }
-        .card-header { background-color: #007bff; color: white; }
-        .progress-bar { background-color: #28a745; }
-        .user-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
+const CareFacilityApp = () => {
+  const [currentView, setCurrentView] = useState('list'); // 'list' or 'detail'
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [applicants, setApplicants] = useState([
+    {
+      id: 1,
+      applicationDate: '2024-12-15',
+      name: '田中太郎',
+      age: 85,
+      careLevel: '要介護3',
+      status: '実調完了',
+      assignee: '佐藤花子',
+      kp: '田中花子（長女）',
+      kpContact: '090-1234-5678',
+      careManager: '山田ケアマネ',
+      cmContact: '048-123-4567',
+      timeline: [
+        {
+          id: 2,
+          author: '佐藤花子',
+          timestamp: '12月18日',
+          content: '実調完了\nADL良好、認知症なし。家族の協力体制◎\n特記事項：夜間のトイレ介助が必要',
+          action: '実調完了',
+          replies: []
+        },
+        {
+          id: 1,
+          author: '佐藤花子',
+          timestamp: '12月15日',
+          content: '申込書受領・台帳入力完了\n紹介元：○○居宅 山田ケアマネ',
+          action: '申込書受領',
+          replies: []
         }
-        .user-link:hover .card {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
+      ]
+    },
+    {
+      id: 2,
+      applicationDate: '2024-12-20',
+      name: '山田花子',
+      age: 78,
+      careLevel: '要介護4',
+      status: '申込書受領',
+      assignee: '鈴木一郎',
+      kp: '山田太郎（長男）',
+      kpContact: '080-9876-5432',
+      careManager: '佐藤ケアマネ',
+      cmContact: '048-987-6543',
+      timeline: [
+        {
+          id: 1,
+          author: '鈴木一郎',
+          timestamp: '12月20日',
+          content: '申込書受領・台帳入力完了\n紹介元：△△病院 SW田中',
+          action: '申込書受領',
+          replies: []
         }
-        .card {
-            transition: all 0.2s ease-in-out;
+      ]
+    },
+    {
+      id: 3,
+      applicationDate: '2024-12-10',
+      name: '佐藤三郎',
+      age: 92,
+      careLevel: '要介護5',
+      status: '健康診断書待ち',
+      assignee: '高橋美代子',
+      kp: '佐藤京子（長女）',
+      kpContact: '070-1111-2222',
+      careManager: '田中ケアマネ',
+      cmContact: '048-111-2222',
+      timeline: [
+        {
+          id: 3,
+          author: '高橋美代子',
+          timestamp: '12月14日',
+          content: '健康診断書を家族に依頼\n主治医：○○病院 山田先生',
+          action: '健康診断書依頼',
+          replies: []
+        },
+        {
+          id: 2,
+          author: '高橋美代子',
+          timestamp: '12月12日',
+          content: '実調完了\n重度の認知症あり。医療的ケア多数\n要検討事項：夜間の見守り体制',
+          action: '実調完了',
+          replies: []
+        },
+        {
+          id: 1,
+          author: '高橋美代子',
+          timestamp: '12月10日',
+          content: '申込書受領・台帳入力完了\n紹介元：○○病院 SW佐藤',
+          action: '申込書受領',
+          replies: []
         }
-    </style>
-</head>
-<body>
-    <div class="container mt-5">
-        <h1 class="mb-4 text-center">入退去手続きチェックリスト</h1>
+      ]
+    }
+  ]);
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+  const [newPost, setNewPost] = useState('');
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [postType, setPostType] = useState('');
+  const [replyTo, setReplyTo] = useState(null);
+  const [likes, setLikes] = useState({});
+  const [showActions, setShowActions] = useState(false);
 
-        <!-- New User Form -->
-        <div class="card mb-4">
-            <div class="card-header">
-                新規利用者を追加
+  // ステータスに応じた色分け
+  const getStatusColor = (status, applicationDate) => {
+    const today = new Date();
+    const appDate = new Date(applicationDate);
+    const daysPassed = Math.floor((today - appDate) / (1000 * 60 * 60 * 24));
+    
+    if (daysPassed > 10) return 'bg-red-100 border-red-300 text-red-800';
+    if (daysPassed > 5) return 'bg-yellow-100 border-yellow-300 text-yellow-800';
+    return 'bg-green-100 border-green-300 text-green-800';
+  };
+
+  const formatTimeAgo = (timestamp) => {
+    const today = new Date();
+    const date = new Date(timestamp);
+    const diffTime = Math.abs(today - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return '今日';
+    if (diffDays === 1) return '1日前';
+    if (diffDays < 7) return `${diffDays}日前`;
+    return timestamp;
+  };
+
+  const handleStatusUpdate = (type) => {
+    setPostType(type);
+    setShowPostForm(true);
+    setReplyTo(null);
+  };
+
+  const handleReply = (postId) => {
+    setReplyTo(postId);
+    setShowPostForm(true);
+    setPostType('');
+  };
+
+  const handleFreePost = () => {
+    setPostType('');
+    setShowPostForm(true);
+    setReplyTo(null);
+  };
+
+  const handleLike = (applicantId, postId) => {
+    const key = `${applicantId}-${postId}`;
+    setLikes(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const submitPost = () => {
+    if (!newPost.trim()) return;
+    
+    const updatedApplicants = applicants.map(app => {
+      if (app.id === selectedApplicant.id) {
+        if (replyTo) {
+          // 返信の場合
+          const updatedTimeline = app.timeline.map(post => {
+            if (post.id === replyTo) {
+              return {
+                ...post,
+                replies: [...(post.replies || []), {
+                  id: Date.now(),
+                  author: app.assignee,
+                  timestamp: '今',
+                  content: newPost
+                }]
+              };
+            }
+            return post;
+          });
+          return { ...app, timeline: updatedTimeline };
+        } else {
+          // 新規投稿の場合
+          const newTimelineItem = {
+            id: app.timeline.length + 1,
+            author: app.assignee,
+            timestamp: '今',
+            content: newPost,
+            action: postType || null,
+            replies: []
+          };
+          
+          // ステータス更新ロジック
+          let newStatus = app.status;
+          if (postType === '実調完了') newStatus = '健康診断書待ち';
+          if (postType === '健康診断書受領') newStatus = '判定会議中';
+          if (postType === '判定会議中') newStatus = '入居決定';
+          if (postType === '入居決定') newStatus = '入居日調整中';
+          if (postType === '書類送付済') newStatus = '入居準備中';
+          if (postType === '入居完了') newStatus = '入居完了';
+          
+          return {
+            ...app,
+            status: newStatus,
+            timeline: [newTimelineItem, ...app.timeline]
+          };
+        }
+      }
+      return app;
+    });
+    
+    setApplicants(updatedApplicants);
+    
+    // selectedApplicantも更新
+    const updatedSelected = updatedApplicants.find(app => app.id === selectedApplicant.id);
+    setSelectedApplicant(updatedSelected);
+    
+    setNewPost('');
+    setShowPostForm(false);
+    setPostType('');
+    setReplyTo(null);
+  };
+
+  const StatusButtons = ({ currentStatus }) => {
+    const allActions = [
+      '申込書受領',
+      '実調日程調整中',
+      '実調完了', 
+      '健康診断書依頼',
+      '健康診断書受領',
+      '判定会議中',
+      '入居決定',
+      '入居日調整中',
+      '書類送付済',
+      '入居準備完了',
+      '入居完了'
+    ];
+
+    // 完了済みのアクションを取得
+    const completedActions = selectedApplicant.timeline
+      .filter(item => item.action)
+      .map(item => item.action);
+
+    return (
+      <div className="space-y-2">
+        {allActions.map((action, index) => {
+          const isCompleted = completedActions.includes(action);
+          
+          return (
+            <button
+              key={index}
+              onClick={() => handleStatusUpdate(action)}
+              disabled={isCompleted}
+              className={`w-full px-4 py-3 rounded-xl transition-all text-left ${
+                isCompleted 
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                  : 'bg-blue-500 text-white hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5'
+              }`}
+            >
+              {isCompleted ? '✓ ' : ''}{action}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  if (currentView === 'detail' && selectedApplicant) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* ヘッダー */}
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <button 
+              onClick={() => setCurrentView('list')}
+              className="flex items-center text-blue-600 mb-4 hover:text-blue-800"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              一覧に戻る
+            </button>
+            
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  {selectedApplicant.name}さん ({selectedApplicant.age}歳・{selectedApplicant.careLevel})
+                </h1>
+                <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedApplicant.status, selectedApplicant.applicationDate)}`}>
+                  {selectedApplicant.status}
+                </div>
+              </div>
             </div>
-            <div class="card-body">
-                <form action="{{ url_for('add_user') }}" method="post">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="name" placeholder="利用者様の氏名" required>
-                        <button class="btn btn-primary" type="submit">追加</button>
-                    </div>
-                </form>
+
+            {/* 基本情報 */}
+            <div className="grid grid-cols-2 gap-6 mt-6">
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">基本情報</h3>
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-medium">申込日:</span> {selectedApplicant.applicationDate}</div>
+                  <div><span className="font-medium">担当者:</span> {selectedApplicant.assignee}</div>
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">連絡先</h3>
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-medium">KP:</span> {selectedApplicant.kp}</div>
+                  <div><span className="font-medium">KP連絡先:</span> {selectedApplicant.kpContact}</div>
+                  <div><span className="font-medium">在宅ケアマネ:</span> {selectedApplicant.careManager}</div>
+                  <div><span className="font-medium">CM連絡先:</span> {selectedApplicant.cmContact}                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-6 h-screen">
+            {/* タイムライン */}
+            <div className="col-span-3 flex flex-col">
+              <div className="bg-white rounded-lg shadow flex-1 flex flex-col">
+                {/* 固定ヘッダー */}
+                <div className="sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-semibold">タイムライン</h2>
+                    <button
+                      onClick={handleFreePost}
+                      className="px-8 py-3 bg-green-500 text-white rounded-full hover:bg-green-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium"
+                    >
+                      投稿
+                    </button>
+                  </div>
+                </div>
+
+                {/* スクロール可能なコンテンツエリア */}
+                <div className="flex-1 overflow-y-auto">
+                  {/* 投稿フォーム - タイムライン上部に固定 */}
+                  {showPostForm && (
+                    <div className="sticky top-0 bg-white z-20 p-6 border-b border-gray-200">
+                      <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 shadow-lg">
+                        {postType && (
+                          <div className="mb-2 font-medium text-blue-800">{postType}</div>
+                        )}
+                        {replyTo && (
+                          <div className="mb-2 text-sm text-gray-600">
+                            返信先: {selectedApplicant.timeline.find(t => t.id === replyTo)?.author}
+                          </div>
+                        )}
+                        {!postType && !replyTo && (
+                          <div className="mb-2 font-medium text-green-800">メモを追加</div>
+                        )}
+                        <textarea
+                          value={newPost}
+                          onChange={(e) => setNewPost(e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                          rows="3"
+                          placeholder="メモを入力してください..."
+                          autoFocus
+                        />
+                        <div className="flex justify-end gap-2 mt-3">
+                          <button
+                            onClick={() => {
+                              setShowPostForm(false);
+                              setPostType('');
+                              setReplyTo(null);
+                            }}
+                            className="px-4 py-2 text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-all"
+                          >
+                            キャンセル
+                          </button>
+                          <button
+                            onClick={submitPost}
+                            className="px-8 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium"
+                          >
+                            投稿
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="p-6 pt-0">
+                    <div className="space-y-6 mt-6">
+                    {selectedApplicant.timeline.map((item, index) => (
+                      <div key={item.id} className="border-l-2 border-gray-200 pl-6 pb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <span className="font-medium text-gray-900">{item.author}</span>
+                            <span className="text-gray-500 text-sm ml-2">· {formatTimeAgo(item.timestamp)}</span>
+                            {item.action && (
+                              <span className={`ml-2 px-2 py-1 text-xs rounded-full font-medium ${
+                                item.action === '入居完了' 
+                                  ? 'bg-red-100 text-red-800' 
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {item.action}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-gray-700 whitespace-pre-line mb-3">{item.content}</div>
+                        
+                        {/* アクションボタン */}
+                        <div className="flex items-center gap-4 text-gray-500">
+                          <button
+                            onClick={() => handleLike(selectedApplicant.id, item.id)}
+                            className={`flex items-center gap-1 hover:text-red-500 transition-colors ${
+                              likes[`${selectedApplicant.id}-${item.id}`] ? 'text-red-500' : ''
+                            }`}
+                          >
+                            <Heart 
+                              className={`w-4 h-4 ${
+                                likes[`${selectedApplicant.id}-${item.id}`] ? 'fill-current' : ''
+                              }`} 
+                            />
+                            <span className="text-sm">
+                              {likes[`${selectedApplicant.id}-${item.id}`] ? '1' : '0'}
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => handleReply(item.id)}
+                            className="flex items-center gap-1 hover:text-blue-500 transition-colors"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            <span className="text-sm">返信</span>
+                          </button>
+                        </div>
+
+                        {/* 返信表示 */}
+                        {item.replies && item.replies.length > 0 && (
+                          <div className="mt-4 space-y-3">
+                            {item.replies.map((reply) => (
+                              <div key={reply.id} className="ml-6 pl-4 border-l border-gray-300">
+                                <div className="flex items-center mb-1">
+                                  <span className="font-medium text-gray-900 text-sm">{reply.author}</span>
+                                  <span className="text-gray-500 text-xs ml-2">· {formatTimeAgo(reply.timestamp)}</span>
+                                </div>
+                                <div className="text-gray-700 text-sm whitespace-pre-line">{reply.content}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* アクションパネル */}
+            <div className="flex flex-col">
+              <div className="bg-white rounded-lg shadow flex-1 flex flex-col">
+                {/* 固定ヘッダー */}
+                <div className="sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10">
+                  <h2 className="text-lg font-semibold">アクション</h2>
+                </div>
+                
+                {/* スクロール可能なコンテンツエリア */}
+                <div className="flex-1 overflow-y-auto p-6 pt-0">
+                  <div className="mt-6">
+                    <StatusButtons currentStatus={selectedApplicant.status} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* ヘッダー */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">特養入居進捗管理</h1>
+          <p className="text-gray-600 mt-2">入居希望者の進捗状況を管理します</p>
         </div>
 
-        <!-- User List -->
-        <h2 class="mb-3">利用者一覧</h2>
-        {% if users %}
-            {% for user in users %}
-            <a href="{{ url_for('user_details', user_id=user.id) }}" class="user-link">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">{{ user.name }}</h5>
-                            <span class="badge bg-secondary">{{ user.status }}</span>
-                        </div>
-                        <p class="card-text text-muted small mt-2">進捗: {{ user.progress }}</p>
-                        <div class="progress">
-                            <div class="progress-bar" role="progressbar" style="width: {{ user.progress_percent }}%;" aria-valuenow="{{ user.progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-            {% endfor %}
-        {% else %}
-            <p class="text-center text-muted">現在、利用者はいません。</p>
-        {% endif %}
-    </div>
+        {/* 申込者一覧 */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">申込者一覧</h2>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-500">{applicants.length}件</span>
+                <button className="px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5 transition-all">
+                  新規登録
+                </button>
+              </div>
+            </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-medium text-gray-700">申込日</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700">名前</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700">年齢</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700">要介護度</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700">ステータス</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {applicants.map((applicant) => (
+                    <tr 
+                      key={applicant.id} 
+                      className="border-b border-gray-100 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200"
+                      onClick={() => {
+                        setSelectedApplicant(applicant);
+                        setCurrentView('detail');
+                      }}
+                    >
+                      <td className="py-3 px-4 text-gray-900">{applicant.applicationDate}</td>
+                      <td className="py-3 px-4 font-medium text-gray-900">{applicant.name}</td>
+                      <td className="py-3 px-4 text-gray-700">{applicant.age}歳</td>
+                      <td className="py-3 px-4 text-gray-700">{applicant.careLevel}</td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(applicant.status, applicant.applicationDate)}`}>
+                          {applicant.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CareFacilityApp;

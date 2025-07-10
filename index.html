@@ -248,6 +248,30 @@
             color: #9ca3af;
             cursor: not-allowed;
         }
+        .action-flow {
+            position: relative;
+        }
+        .action-flow::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #8b7859, #6b5d47);
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        .action-flow::after {
+            content: '↓';
+            position: absolute;
+            left: 50%;
+            bottom: -10px;
+            transform: translateX(-50%);
+            color: #8b7859;
+            font-size: 16px;
+            z-index: 2;
+        }
         .like-btn, .reply-btn {
             display: flex;
             align-items: center;
@@ -420,6 +444,38 @@
             content: "📋";
             font-size: 16px;
         }
+        .basic-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .basic-info-section {
+            background: #f9f6f0;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #f0ede4;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .info-item {
+            margin-bottom: 8px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #4a3f2a;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            color: #6b5d47;
+        }
+        .edit-info-modal {
+            max-width: 600px;
+        }
     </style>
 </head>
 <body>
@@ -430,7 +486,9 @@
           const [currentView, setCurrentView] = React.useState('list');
           const [selectedApplicant, setSelectedApplicant] = React.useState(null);
           const [showModal, setShowModal] = React.useState(false);
+          const [showEditModal, setShowEditModal] = React.useState(false);
           const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
+          const [hiddenApplicants, setHiddenApplicants] = React.useState([]);
           const [applicants, setApplicants] = React.useState([
             {
               id: 1,
@@ -440,7 +498,10 @@
               careLevel: '要介護3',
               status: '実調完了',
               assignee: '佐藤花子',
+              address: '埼玉県さいたま市○○区○○町1-1-1',
               kp: '田中花子（長女）',
+              kpAge: 55,
+              kpAddress: '埼玉県さいたま市○○区○○町1-1-2',
               kpContact: '090-1234-5678',
               careManager: '山田ケアマネ',
               cmContact: '048-123-4567',
@@ -471,7 +532,10 @@
               careLevel: '要介護4',
               status: '申込書受領',
               assignee: '鈴木一郎',
+              address: '埼玉県川口市○○町2-2-2',
               kp: '山田太郎（長男）',
+              kpAge: 52,
+              kpAddress: '埼玉県川口市○○町2-2-3',
               kpContact: '080-9876-5432',
               careManager: '佐藤ケアマネ',
               cmContact: '048-987-6543',
@@ -494,7 +558,10 @@
               careLevel: '要介護5',
               status: '健康診断書待ち',
               assignee: '高橋美代子',
+              address: '埼玉県越谷市○○町3-3-3',
               kp: '佐藤京子（長女）',
+              kpAge: 65,
+              kpAddress: '埼玉県越谷市○○町3-3-4',
               kpContact: '070-1111-2222',
               careManager: '田中ケアマネ',
               cmContact: '048-111-2222',
@@ -532,7 +599,6 @@
           const [postType, setPostType] = React.useState('');
           const [replyTo, setReplyTo] = React.useState(null);
           const [likes, setLikes] = React.useState({});
-          const [showActions, setShowActions] = React.useState(false);
           const [formData, setFormData] = React.useState({
             name: '',
             age: '',
@@ -542,6 +608,16 @@
             careManager: '',
             cmContact: '',
             assignee: ''
+          });
+          
+          const [editFormData, setEditFormData] = React.useState({
+            name: '',
+            age: '',
+            careLevel: '',
+            address: '',
+            kp: '',
+            kpAge: '',
+            kpAddress: ''
           });
 
           const getStatusColor = (status, applicationDate) => {
@@ -579,8 +655,40 @@
             return sortConfig.direction === 'asc' ? '↑' : '↓';
           };
 
+          const getCurrentStatus = (applicant) => {
+            if (!applicant.timeline || applicant.timeline.length === 0) return applicant.status;
+            
+            const latestAction = applicant.timeline
+              .filter(item => item.action)
+              .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+              
+            if (!latestAction) return applicant.status;
+            
+            const statusMapping = {
+              '申込書受領': '申込書受領',
+              '実調日程調整中': '実調日程調整中',
+              '実調完了': '健康診断書待ち',
+              '健康診断書依頼': '健康診断書待ち',
+              '健康診断書受領': '判定会議中',
+              '判定会議中': '入居決定',
+              '入居決定': '入居日調整中',
+              '入居日調整中': '入居日調整中',
+              '書類送付済': '入居準備中',
+              '入居準備完了': '入居準備完了',
+              '入居完了': '入居完了'
+            };
+            
+            return statusMapping[latestAction.action] || applicant.status;
+          };
+
           const sortedApplicants = React.useMemo(() => {
-            let sortableApplicants = [...applicants];
+            let sortableApplicants = [...applicants]
+              .filter(applicant => !hiddenApplicants.includes(applicant.id))
+              .map(applicant => ({
+                ...applicant,
+                status: getCurrentStatus(applicant)
+              }));
+              
             if (sortConfig.key) {
               sortableApplicants.sort((a, b) => {
                 let aValue = a[sortConfig.key];
@@ -600,7 +708,7 @@
               });
             }
             return sortableApplicants;
-          }, [applicants, sortConfig]);
+          }, [applicants, sortConfig, hiddenApplicants]);
 
           const handleInputChange = (e) => {
             const { name, value } = e.target;
@@ -608,6 +716,52 @@
               ...prev,
               [name]: value
             }));
+          };
+
+          const handleEditInputChange = (e) => {
+            const { name, value } = e.target;
+            setEditFormData(prev => ({
+              ...prev,
+              [name]: value
+            }));
+          };
+
+          const handleEditBasicInfo = () => {
+            setEditFormData({
+              name: selectedApplicant.name,
+              age: selectedApplicant.age,
+              careLevel: selectedApplicant.careLevel,
+              address: selectedApplicant.address || '',
+              kp: selectedApplicant.kp,
+              kpAge: selectedApplicant.kpAge || '',
+              kpAddress: selectedApplicant.kpAddress || ''
+            });
+            setShowEditModal(true);
+          };
+
+          const handleSaveEdit = (e) => {
+            e.preventDefault();
+            
+            const updatedApplicants = applicants.map(app => {
+              if (app.id === selectedApplicant.id) {
+                return {
+                  ...app,
+                  name: editFormData.name,
+                  age: parseInt(editFormData.age),
+                  careLevel: editFormData.careLevel,
+                  address: editFormData.address,
+                  kp: editFormData.kp,
+                  kpAge: editFormData.kpAge ? parseInt(editFormData.kpAge) : null,
+                  kpAddress: editFormData.kpAddress
+                };
+              }
+              return app;
+            });
+            
+            setApplicants(updatedApplicants);
+            const updatedSelected = updatedApplicants.find(app => app.id === selectedApplicant.id);
+            setSelectedApplicant(updatedSelected);
+            setShowEditModal(false);
           };
 
           const handleSubmit = (e) => {
@@ -710,17 +864,8 @@
                     replies: []
                   };
                   
-                  let newStatus = app.status;
-                  if (postType === '実調完了') newStatus = '健康診断書待ち';
-                  if (postType === '健康診断書受領') newStatus = '判定会議中';
-                  if (postType === '判定会議中') newStatus = '入居決定';
-                  if (postType === '入居決定') newStatus = '入居日調整中';
-                  if (postType === '書類送付済') newStatus = '入居準備中';
-                  if (postType === '入居完了') newStatus = '入居完了';
-                  
                   return {
                     ...app,
-                    status: newStatus,
                     timeline: [newTimelineItem, ...app.timeline]
                   };
                 }
@@ -732,6 +877,16 @@
             
             const updatedSelected = updatedApplicants.find(app => app.id === selectedApplicant.id);
             setSelectedApplicant(updatedSelected);
+            
+            // 入居完了の場合は確認メッセージを表示
+            if (postType === '入居完了') {
+              setTimeout(() => {
+                if (window.confirm('この待機者は入居が完了しました。非表示にしますか?')) {
+                  setHiddenApplicants(prev => [...prev, selectedApplicant.id]);
+                  setCurrentView('list');
+                }
+              }, 500);
+            }
             
             setNewPost('');
             setShowPostForm(false);
@@ -761,22 +916,66 @@
                     <h1 style={{fontSize: '24px', fontWeight: 'bold', marginBottom: '8px'}}>
                       {selectedApplicant.name}さん ({selectedApplicant.age}歳・{selectedApplicant.careLevel})
                     </h1>
-                    <div className={`status-badge ${getStatusColor(selectedApplicant.status, selectedApplicant.applicationDate)}`}>
-                      {selectedApplicant.status}
+                    <div className={`status-badge ${getStatusColor(getCurrentStatus(selectedApplicant), selectedApplicant.applicationDate)}`}>
+                      {getCurrentStatus(selectedApplicant)}
                     </div>
 
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px'}}>
-                      <div>
-                        <h3 style={{fontWeight: '600', marginBottom: '8px'}}>基本情報</h3>
-                        <div>申込日: {selectedApplicant.applicationDate}</div>
-                        <div>担当者: {selectedApplicant.assignee}</div>
+                    <div className="basic-info-section" style={{marginTop: '24px'}}>
+                      <div className="basic-info-header">
+                        <h3 style={{fontWeight: '600', margin: 0}}>基本情報</h3>
+                        <button className="btn-primary" style={{padding: '8px 16px', fontSize: '14px'}} onClick={handleEditBasicInfo}>
+                          基本情報編集
+                        </button>
                       </div>
-                      <div>
-                        <h3 style={{fontWeight: '600', marginBottom: '8px'}}>連絡先</h3>
-                        <div>KP: {selectedApplicant.kp}</div>
-                        <div>KP連絡先: {selectedApplicant.kpContact}</div>
-                        <div>在宅ケアマネ: {selectedApplicant.careManager}</div>
-                        <div>CM連絡先: {selectedApplicant.cmContact}</div>
+                      <div className="info-grid">
+                        <div>
+                          <div className="info-item">
+                            <div className="info-label">申込日</div>
+                            <div className="info-value">{selectedApplicant.applicationDate}</div>
+                          </div>
+                          <div className="info-item">
+                            <div className="info-label">担当者</div>
+                            <div className="info-value">{selectedApplicant.assignee}</div>
+                          </div>
+                          <div className="info-item">
+                            <div className="info-label">住所</div>
+                            <div className="info-value">{selectedApplicant.address || '未設定'}</div>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="info-item">
+                            <div className="info-label">KP</div>
+                            <div className="info-value">{selectedApplicant.kp}</div>
+                          </div>
+                          <div className="info-item">
+                            <div className="info-label">KP年齢</div>
+                            <div className="info-value">{selectedApplicant.kpAge ? `${selectedApplicant.kpAge}歳` : '未設定'}</div>
+                          </div>
+                          <div className="info-item">
+                            <div className="info-label">KP住所</div>
+                            <div className="info-value">{selectedApplicant.kpAddress || '未設定'}</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #ede7d6'}}>
+                        <div className="info-grid">
+                          <div>
+                            <div className="info-item">
+                              <div className="info-label">KP連絡先</div>
+                              <div className="info-value">{selectedApplicant.kpContact}</div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="info-item">
+                              <div className="info-label">在宅ケアマネ</div>
+                              <div className="info-value">{selectedApplicant.careManager}</div>
+                            </div>
+                            <div className="info-item">
+                              <div className="info-label">CM連絡先</div>
+                              <div className="info-value">{selectedApplicant.cmContact}</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -801,11 +1000,12 @@
                             {replyTo && <div style={{fontSize: '14px', color: '#6b7280', marginBottom: '8px'}}>
                               返信先: {selectedApplicant.timeline.find(t => t.id === replyTo)?.author}
                             </div>}
-                            {!postType && !replyTo && <div style={{fontWeight: '600', marginBottom: '8px', color: '#059669'}}>メモを追加</div>}
+                            {!postType && !replyTo && <div style={{fontWeight: '600', marginBottom: '8px', color: '#059669'}}>右からアクションを選択してください</div>}
                             <textarea
                               value={newPost}
                               onChange={(e) => setNewPost(e.target.value)}
                               className="textarea"
+                              style={{width: 'calc(100% - 24px)'}}
                               rows="3"
                               placeholder="メモを入力してください..."
                             />
@@ -880,45 +1080,32 @@
 
                   <div className="card flex-col">
                     <div className="sticky-header">
-                      <div className="flex-between">
-                        <h2 style={{fontSize: '18px', fontWeight: '600'}}>アクション</h2>
-                        <button
-                          onClick={() => setShowActions(!showActions)}
-                          className="btn-primary"
-                        >
-                          {showActions ? '閉じる' : '表示'}
-                        </button>
-                      </div>
+                      <h2 style={{fontSize: '18px', fontWeight: '600'}}>アクション</h2>
                     </div>
                     
-                    {showActions ? (
-                      <div className="scroll-area">
-                        <div className="action-list">
-                          {allActions.map((action, index) => {
-                            const isCompleted = completedActions.includes(action);
-                            return (
-                              <button
-                                key={index}
-                                onClick={() => handleStatusUpdate(action)}
-                                disabled={isCompleted}
-                                className="action-btn"
-                                style={{
-                                  backgroundColor: isCompleted ? '#e5e7eb' : '#3b82f6',
-                                  color: isCompleted ? '#9ca3af' : 'white'
-                                }}
-                              >
-                                {isCompleted ? '✓ ' : ''}{action}
-                              </button>
-                            );
-                          })}
-                        </div>
+                    <div className="scroll-area">
+                      <div className="action-list action-flow">
+                        {allActions.map((action, index) => {
+                          const isCompleted = completedActions.includes(action);
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => handleStatusUpdate(action)}
+                              disabled={isCompleted}
+                              className="action-btn"
+                              style={{
+                                backgroundColor: isCompleted ? '#e5e7eb' : '#8b7859',
+                                color: isCompleted ? '#9ca3af' : '#fdfcf8',
+                                position: 'relative',
+                                zIndex: 10
+                              }}
+                            >
+                              {isCompleted ? '✓ ' : ''}{action}
+                            </button>
+                          );
+                        })}
                       </div>
-                    ) : (
-                      <div className="text-center">
-                        <div style={{fontSize: '18px', marginBottom: '8px'}}>📋</div>
-                        <div style={{fontSize: '14px'}}>「表示」ボタンでアクション一覧を確認できます</div>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1105,6 +1292,116 @@
                       </div>
                       <div className="modal-buttons">
                         <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                          キャンセル
+                        </button>
+                        <button type="submit" className="btn-primary">
+                          保存
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+              
+              {showEditModal && (
+                <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+                  <div className="modal-content edit-info-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-header">
+                      <h3 className="modal-title">基本情報編集</h3>
+                      <button className="close-button" onClick={() => setShowEditModal(false)}>×</button>
+                    </div>
+                    <form onSubmit={handleSaveEdit}>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label className="form-label">名前 *</label>
+                          <input
+                            type="text"
+                            name="name"
+                            value={editFormData.name}
+                            onChange={handleEditInputChange}
+                            className="form-input"
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">年齢 *</label>
+                          <input
+                            type="number"
+                            name="age"
+                            value={editFormData.age}
+                            onChange={handleEditInputChange}
+                            className="form-input"
+                            min="0"
+                            max="120"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">要介護度 *</label>
+                        <select
+                          name="careLevel"
+                          value={editFormData.careLevel}
+                          onChange={handleEditInputChange}
+                          className="form-input"
+                          required
+                        >
+                          <option value="">選択してください</option>
+                          <option value="要支援1">要支援1</option>
+                          <option value="要支援2">要支援2</option>
+                          <option value="要介護1">要介護1</option>
+                          <option value="要介護2">要介護2</option>
+                          <option value="要介護3">要介護3</option>
+                          <option value="要介護4">要介護4</option>
+                          <option value="要介護5">要介護5</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">住所</label>
+                        <input
+                          type="text"
+                          name="address"
+                          value={editFormData.address}
+                          onChange={handleEditInputChange}
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">KP（キーパーソン）</label>
+                        <input
+                          type="text"
+                          name="kp"
+                          value={editFormData.kp}
+                          onChange={handleEditInputChange}
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label className="form-label">KP年齢</label>
+                          <input
+                            type="number"
+                            name="kpAge"
+                            value={editFormData.kpAge}
+                            onChange={handleEditInputChange}
+                            className="form-input"
+                            min="0"
+                            max="120"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">KP住所</label>
+                          <input
+                            type="text"
+                            name="kpAddress"
+                            value={editFormData.kpAddress}
+                            onChange={handleEditInputChange}
+                            className="form-input"
+                          />
+                        </div>
+                      </div>
+                      <div className="modal-buttons">
+                        <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>
                           キャンセル
                         </button>
                         <button type="submit" className="btn-primary">

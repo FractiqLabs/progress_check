@@ -33,25 +33,23 @@
                 <div class="card-header">{{ category }}</div>
                 <ul class="list-group list-group-flush">
                     {% for item in items %}
-                    <li class="list-group-item">
-                        <form action="{{ url_for('update_item', item_id=item.id) }}" method="post">
-                            <div class="row align-items-center">
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="is_checked" value="1" id="check-{{ item.id }}" {% if item.is_checked %}checked{% endif %}>
-                                        <label class="form-check-label" for="check-{{ item.id }}">
-                                            {{ item.item_name }}
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <textarea class="form-control form-control-sm remarks-textarea" name="remarks" rows="1" placeholder="備考">{{ item.remarks or '' }}</textarea>
-                                </div>
-                                <div class="col-md-2 text-end">
-                                    <button type="submit" class="btn btn-primary btn-sm">保存</button>
+                    <li class="list-group-item" data-item-id="{{ item.id }}">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_checked" value="1" id="check-{{ item.id }}" {% if item.is_checked %}checked{% endif %}>
+                                    <label class="form-check-label" for="check-{{ item.id }}">
+                                        {{ item.item_name }}
+                                    </label>
                                 </div>
                             </div>
-                        </form>
+                            <div class="col-md-6">
+                                <textarea class="form-control form-control-sm remarks-textarea" name="remarks" rows="1" placeholder="備考">{{ item.remarks or '' }}</textarea>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <span class="text-success small d-none save-indicator">保存しました！</span>
+                            </div>
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>
@@ -62,5 +60,51 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.list-group-item').forEach(itemElement => {
+                const itemId = itemElement.dataset.itemId;
+                const checkbox = itemElement.querySelector('input[type="checkbox"]');
+                const remarksTextarea = itemElement.querySelector('textarea[name="remarks"]');
+                const saveIndicator = itemElement.querySelector('.save-indicator');
+
+                let timeoutId;
+
+                const sendUpdate = () => {
+                    clearTimeout(timeoutId); // Clear any existing timeout
+
+                    const isChecked = checkbox.checked ? 1 : 0;
+                    const remarks = remarksTextarea.value;
+
+                    fetch(`/update/${itemId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `is_checked=${isChecked}&remarks=${encodeURIComponent(remarks)}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            saveIndicator.classList.remove('d-none');
+                            timeoutId = setTimeout(() => {
+                                saveIndicator.classList.add('d-none');
+                            }, 2000); // Hide after 2 seconds
+                        } else {
+                            console.error('Update failed:', data.message);
+                            // Optionally, show an error message to the user
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error during fetch:', error);
+                        // Optionally, show an error message to the user
+                    });
+                };
+
+                checkbox.addEventListener('change', sendUpdate);
+                remarksTextarea.addEventListener('input', sendUpdate); // Use 'input' for immediate feedback
+            });
+        });
+    </script>
 </body>
 </html>

@@ -4,18 +4,258 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>特養入居進捗管理アプリ</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #f9fafb;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .card-content {
+            padding: 24px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+        .btn-green {
+            background-color: #10b981;
+            color: white;
+            border-radius: 24px;
+            padding: 12px 32px;
+        }
+        .btn-green:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th,
+        .table td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .table th {
+            font-weight: 600;
+            color: #374151;
+        }
+        .table tr:hover {
+            background-color: #f9fafb;
+            cursor: pointer;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .status-green {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .status-yellow {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .status-red {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .timeline-item {
+            border-left: 2px solid #e5e7eb;
+            padding-left: 24px;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        .timeline-content {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .action-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+        .action-blue {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        .action-red {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 24px;
+            height: 80vh;
+        }
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            z-index: 10;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .hidden {
+            display: none;
+        }
+        .text-center {
+            text-align: center;
+            color: #6b7280;
+            padding: 40px;
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            color: #3b82f6;
+            text-decoration: none;
+            margin-bottom: 16px;
+        }
+        .back-btn:hover {
+            color: #1d4ed8;
+        }
+        .form-area {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 20;
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .form-box {
+            padding: 16px;
+            border: 2px solid #bfdbfe;
+            border-radius: 8px;
+            background: #eff6ff;
+        }
+        .textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            resize: none;
+            font-family: inherit;
+        }
+        .action-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .action-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .action-btn:not(:disabled):hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .action-btn:disabled {
+            background-color: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .like-btn, .reply-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border: none;
+            background: none;
+            color: #6b7280;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+        .like-btn:hover {
+            color: #ef4444;
+        }
+        .reply-btn:hover {
+            color: #3b82f6;
+        }
+        .like-btn.liked {
+            color: #ef4444;
+        }
+        .reply-area {
+            margin-left: 24px;
+            padding-left: 16px;
+            border-left: 1px solid #d1d5db;
+            margin-top: 16px;
+        }
+        .reply-item {
+            margin-bottom: 12px;
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
     
     <script type="text/babel">
-        const { ChevronRight, ArrowLeft, Heart, MessageCircle } = lucide;
-
         const CareFacilityApp = () => {
           const [currentView, setCurrentView] = React.useState('list');
           const [selectedApplicant, setSelectedApplicant] = React.useState(null);
@@ -127,9 +367,9 @@
             const appDate = new Date(applicationDate);
             const daysPassed = Math.floor((today - appDate) / (1000 * 60 * 60 * 24));
             
-            if (daysPassed > 10) return 'bg-red-100 border-red-300 text-red-800';
-            if (daysPassed > 5) return 'bg-yellow-100 border-yellow-300 text-yellow-800';
-            return 'bg-green-100 border-green-300 text-green-800';
+            if (daysPassed > 10) return 'status-red';
+            if (daysPassed > 5) return 'status-yellow';
+            return 'status-green';
           };
 
           const formatTimeAgo = (timestamp) => {
@@ -230,19 +470,11 @@
             setReplyTo(null);
           };
 
-          const StatusButtons = ({ currentStatus }) => {
+          if (currentView === 'detail' && selectedApplicant) {
             const allActions = [
-              '申込書受領',
-              '実調日程調整中',
-              '実調完了', 
-              '健康診断書依頼',
-              '健康診断書受領',
-              '判定会議中',
-              '入居決定',
-              '入居日調整中',
-              '書類送付済',
-              '入居準備完了',
-              '入居完了'
+              '申込書受領', '実調日程調整中', '実調完了', '健康診断書依頼',
+              '健康診断書受領', '判定会議中', '入居決定', '入居日調整中',
+              '書類送付済', '入居準備完了', '入居完了'
             ];
 
             const completedActions = selectedApplicant.timeline
@@ -250,232 +482,174 @@
               .map(item => item.action);
 
             return (
-              <div className="space-y-2">
-                {allActions.map((action, index) => {
-                  const isCompleted = completedActions.includes(action);
-                  
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleStatusUpdate(action)}
-                      disabled={isCompleted}
-                      className={`w-full px-4 py-3 rounded-xl transition-all text-left ${
-                        isCompleted 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-blue-500 text-white hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5'
-                      }`}
-                    >
-                      {isCompleted ? '✓ ' : ''}{action}
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          };
-
-          if (currentView === 'detail' && selectedApplicant) {
-            return (
-              <div className="min-h-screen bg-gray-50 p-6">
-                <div className="max-w-6xl mx-auto">
-                  <div className="bg-white rounded-lg shadow p-6 mb-6">
-                    <button 
-                      onClick={() => setCurrentView('list')}
-                      className="flex items-center text-blue-600 mb-4 hover:text-blue-800"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      一覧に戻る
-                    </button>
+              <div className="container">
+                <div className="card">
+                  <div className="card-content">
+                    <a href="#" onClick={() => setCurrentView('list')} className="back-btn">
+                      ← 一覧に戻る
+                    </a>
                     
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                          {selectedApplicant.name}さん ({selectedApplicant.age}歳・{selectedApplicant.careLevel})
-                        </h1>
-                        <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedApplicant.status, selectedApplicant.applicationDate)}`}>
-                          {selectedApplicant.status}
-                        </div>
-                      </div>
+                    <h1 style={{fontSize: '24px', fontWeight: 'bold', marginBottom: '8px'}}>
+                      {selectedApplicant.name}さん ({selectedApplicant.age}歳・{selectedApplicant.careLevel})
+                    </h1>
+                    <div className={`status-badge ${getStatusColor(selectedApplicant.status, selectedApplicant.applicationDate)}`}>
+                      {selectedApplicant.status}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6 mt-6">
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px'}}>
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">基本情報</h3>
-                        <div className="space-y-2 text-sm">
-                          <div><span className="font-medium">申込日:</span> {selectedApplicant.applicationDate}</div>
-                          <div><span className="font-medium">担当者:</span> {selectedApplicant.assignee}</div>
-                        </div>
+                        <h3 style={{fontWeight: '600', marginBottom: '8px'}}>基本情報</h3>
+                        <div>申込日: {selectedApplicant.applicationDate}</div>
+                        <div>担当者: {selectedApplicant.assignee}</div>
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">連絡先</h3>
-                        <div className="space-y-2 text-sm">
-                          <div><span className="font-medium">KP:</span> {selectedApplicant.kp}</div>
-                          <div><span className="font-medium">KP連絡先:</span> {selectedApplicant.kpContact}</div>
-                          <div><span className="font-medium">在宅ケアマネ:</span> {selectedApplicant.careManager}</div>
-                          <div><span className="font-medium">CM連絡先:</span> {selectedApplicant.cmContact}</div>
-                        </div>
+                        <h3 style={{fontWeight: '600', marginBottom: '8px'}}>連絡先</h3>
+                        <div>KP: {selectedApplicant.kp}</div>
+                        <div>KP連絡先: {selectedApplicant.kpContact}</div>
+                        <div>在宅ケアマネ: {selectedApplicant.careManager}</div>
+                        <div>CM連絡先: {selectedApplicant.cmContact}</div>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-4 gap-6 h-screen">
-                    <div className="col-span-3 flex flex-col">
-                      <div className="bg-white rounded-lg shadow flex-1 flex flex-col">
-                        <div className="sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10">
-                          <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">タイムライン</h2>
-                            <button
-                              onClick={handleFreePost}
-                              className="px-8 py-3 bg-green-500 text-white rounded-full hover:bg-green-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium"
-                            >
-                              投稿
-                            </button>
+                <div className="grid-4">
+                  <div className="card flex-col">
+                    <div className="sticky-header">
+                      <div className="flex-between">
+                        <h2 style={{fontSize: '18px', fontWeight: '600'}}>タイムライン</h2>
+                        <button onClick={handleFreePost} className="btn-green">
+                          投稿
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="scroll-area">
+                      {showPostForm && (
+                        <div className="form-area">
+                          <div className="form-box">
+                            {postType && <div style={{fontWeight: '600', marginBottom: '8px', color: '#1e40af'}}>{postType}</div>}
+                            {replyTo && <div style={{fontSize: '14px', color: '#6b7280', marginBottom: '8px'}}>
+                              返信先: {selectedApplicant.timeline.find(t => t.id === replyTo)?.author}
+                            </div>}
+                            {!postType && !replyTo && <div style={{fontWeight: '600', marginBottom: '8px', color: '#059669'}}>メモを追加</div>}
+                            <textarea
+                              value={newPost}
+                              onChange={(e) => setNewPost(e.target.value)}
+                              className="textarea"
+                              rows="3"
+                              placeholder="メモを入力してください..."
+                            />
+                            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px'}}>
+                              <button
+                                onClick={() => {
+                                  setShowPostForm(false);
+                                  setPostType('');
+                                  setReplyTo(null);
+                                }}
+                                className="btn"
+                                style={{background: '#f3f4f6', color: '#374151'}}
+                              >
+                                キャンセル
+                              </button>
+                              <button onClick={submitPost} className="btn-primary">
+                                投稿
+                              </button>
+                            </div>
                           </div>
                         </div>
+                      )}
 
-                        <div className="flex-1 overflow-y-auto">
-                          {showPostForm && (
-                            <div className="sticky top-0 bg-white z-20 p-6 border-b border-gray-200">
-                              <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 shadow-lg">
-                                {postType && (
-                                  <div className="mb-2 font-medium text-blue-800">{postType}</div>
-                                )}
-                                {replyTo && (
-                                  <div className="mb-2 text-sm text-gray-600">
-                                    返信先: {selectedApplicant.timeline.find(t => t.id === replyTo)?.author}
-                                  </div>
-                                )}
-                                {!postType && !replyTo && (
-                                  <div className="mb-2 font-medium text-green-800">メモを追加</div>
-                                )}
-                                <textarea
-                                  value={newPost}
-                                  onChange={(e) => setNewPost(e.target.value)}
-                                  className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-                                  rows="3"
-                                  placeholder="メモを入力してください..."
-                                  autoFocus
-                                />
-                                <div className="flex justify-end gap-2 mt-3">
-                                  <button
-                                    onClick={() => {
-                                      setShowPostForm(false);
-                                      setPostType('');
-                                      setReplyTo(null);
-                                    }}
-                                    className="px-4 py-2 text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-all"
-                                  >
-                                    キャンセル
-                                  </button>
-                                  <button
-                                    onClick={submitPost}
-                                    className="px-8 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium"
-                                  >
-                                    投稿
-                                  </button>
-                                </div>
-                              </div>
+                      {selectedApplicant.timeline.map((item) => (
+                        <div key={item.id} className="timeline-item">
+                          <div className="timeline-content">
+                            <div style={{display: 'flex', alignItems: 'center', marginBottom: '8px'}}>
+                              <span style={{fontWeight: '600'}}>{item.author}</span>
+                              <span style={{color: '#6b7280', fontSize: '14px', marginLeft: '8px'}}>
+                                · {formatTimeAgo(item.timestamp)}
+                              </span>
+                              {item.action && (
+                                <span className={`action-badge ${item.action === '入居完了' ? 'action-red' : 'action-blue'}`}>
+                                  {item.action}
+                                </span>
+                              )}
                             </div>
-                          )}
+                            <div style={{whiteSpace: 'pre-line', marginBottom: '12px'}}>{item.content}</div>
+                            
+                            <div style={{display: 'flex', gap: '16px'}}>
+                              <button
+                                onClick={() => handleLike(selectedApplicant.id, item.id)}
+                                className={`like-btn ${likes[`${selectedApplicant.id}-${item.id}`] ? 'liked' : ''}`}
+                              >
+                                ♡ {likes[`${selectedApplicant.id}-${item.id}`] ? '1' : '0'}
+                              </button>
+                              <button onClick={() => handleReply(item.id)} className="reply-btn">
+                                💬 返信
+                              </button>
+                            </div>
 
-                          <div className="p-6 pt-0">
-                            <div className="space-y-6 mt-6">
-                              {selectedApplicant.timeline.map((item) => (
-                                <div key={item.id} className="border-l-2 border-gray-200 pl-6 pb-4">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center">
-                                      <span className="font-medium text-gray-900">{item.author}</span>
-                                      <span className="text-gray-500 text-sm ml-2">· {formatTimeAgo(item.timestamp)}</span>
-                                      {item.action && (
-                                        <span className={`ml-2 px-2 py-1 text-xs rounded-full font-medium ${
-                                          item.action === '入居完了' 
-                                            ? 'bg-red-100 text-red-800' 
-                                            : 'bg-blue-100 text-blue-800'
-                                        }`}>
-                                          {item.action}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="text-gray-700 whitespace-pre-line mb-3">{item.content}</div>
-                                  
-                                  <div className="flex items-center gap-4 text-gray-500">
-                                    <button
-                                      onClick={() => handleLike(selectedApplicant.id, item.id)}
-                                      className={`flex items-center gap-1 hover:text-red-500 transition-colors ${
-                                        likes[`${selectedApplicant.id}-${item.id}`] ? 'text-red-500' : ''
-                                      }`}
-                                    >
-                                      <Heart 
-                                        className={`w-4 h-4 ${
-                                          likes[`${selectedApplicant.id}-${item.id}`] ? 'fill-current' : ''
-                                        }`} 
-                                      />
-                                      <span className="text-sm">
-                                        {likes[`${selectedApplicant.id}-${item.id}`] ? '1' : '0'}
+                            {item.replies && item.replies.length > 0 && (
+                              <div className="reply-area">
+                                {item.replies.map((reply) => (
+                                  <div key={reply.id} className="reply-item">
+                                    <div style={{fontSize: '14px'}}>
+                                      <span style={{fontWeight: '600'}}>{reply.author}</span>
+                                      <span style={{color: '#6b7280', marginLeft: '8px'}}>
+                                        · {formatTimeAgo(reply.timestamp)}
                                       </span>
-                                    </button>
-                                    <button
-                                      onClick={() => handleReply(item.id)}
-                                      className="flex items-center gap-1 hover:text-blue-500 transition-colors"
-                                    >
-                                      <MessageCircle className="w-4 h-4" />
-                                      <span className="text-sm">返信</span>
-                                    </button>
-                                  </div>
-
-                                  {item.replies && item.replies.length > 0 && (
-                                    <div className="mt-4 space-y-3">
-                                      {item.replies.map((reply) => (
-                                        <div key={reply.id} className="ml-6 pl-4 border-l border-gray-300">
-                                          <div className="flex items-center mb-1">
-                                            <span className="font-medium text-gray-900 text-sm">{reply.author}</span>
-                                            <span className="text-gray-500 text-xs ml-2">· {formatTimeAgo(reply.timestamp)}</span>
-                                          </div>
-                                          <div className="text-gray-700 text-sm whitespace-pre-line">{reply.content}</div>
-                                        </div>
-                                      ))}
                                     </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
+                                    <div style={{fontSize: '14px', whiteSpace: 'pre-line'}}>{reply.content}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="flex flex-col">
-                      <div className="bg-white rounded-lg shadow flex-1 flex flex-col">
-                        <div className="sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10">
-                          <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">アクション</h2>
-                            <button
-                              onClick={() => setShowActions(!showActions)}
-                              className="px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5 transition-all"
-                            >
-                              {showActions ? '閉じる' : '表示'}
-                            </button>
-                          </div>
-                        </div>
-                        
-                        {showActions && (
-                          <div className="flex-1 overflow-y-auto p-6 pt-0">
-                            <div className="mt-6">
-                              <StatusButtons currentStatus={selectedApplicant.status} />
-                            </div>
-                          </div>
-                        )}
-                        
-                        {!showActions && (
-                          <div className="flex-1 flex items-center justify-center p-6">
-                            <div className="text-center text-gray-500">
-                              <div className="text-lg mb-2">📋</div>
-                              <div className="text-sm">「表示」ボタンでアクション一覧を確認できます</div>
-                            </div>
-                          </div>
-                        )}
+                  <div className="card flex-col">
+                    <div className="sticky-header">
+                      <div className="flex-between">
+                        <h2 style={{fontSize: '18px', fontWeight: '600'}}>アクション</h2>
+                        <button
+                          onClick={() => setShowActions(!showActions)}
+                          className="btn-primary"
+                        >
+                          {showActions ? '閉じる' : '表示'}
+                        </button>
                       </div>
                     </div>
+                    
+                    {showActions ? (
+                      <div className="scroll-area">
+                        <div className="action-list">
+                          {allActions.map((action, index) => {
+                            const isCompleted = completedActions.includes(action);
+                            return (
+                              <button
+                                key={index}
+                                onClick={() => handleStatusUpdate(action)}
+                                disabled={isCompleted}
+                                className="action-btn"
+                                style={{
+                                  backgroundColor: isCompleted ? '#e5e7eb' : '#3b82f6',
+                                  color: isCompleted ? '#9ca3af' : 'white'
+                                }}
+                              >
+                                {isCompleted ? '✓ ' : ''}{action}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <div style={{fontSize: '18px', marginBottom: '8px'}}>📋</div>
+                        <div style={{fontSize: '14px'}}>「表示」ボタンでアクション一覧を確認できます</div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -483,74 +657,68 @@
           }
 
           return (
-            <div className="min-h-screen bg-gray-50 p-6">
-              <div className="max-w-6xl mx-auto">
-                <div className="bg-white rounded-lg shadow p-6 mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900">特養入居進捗管理</h1>
-                  <p className="text-gray-600 mt-2">入居希望者の進捗状況を管理します</p>
+            <div className="container">
+              <div className="card">
+                <div className="card-content">
+                  <h1 style={{fontSize: '24px', fontWeight: 'bold'}}>特養入居進捗管理</h1>
+                  <p style={{color: '#6b7280', marginTop: '8px'}}>入居希望者の進捗状況を管理します</p>
                 </div>
+              </div>
 
-                <div className="bg-white rounded-lg shadow">
-                  <div className="p-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-lg font-semibold">申込者一覧</h2>
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm text-gray-500">{applicants.length}件</span>
-                        <button className="px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5 transition-all">
-                          新規登録
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-gray-200">
-                            <th className="text-left py-3 px-4 font-medium text-gray-700">申込日</th>
-                            <th className="text-left py-3 px-4 font-medium text-gray-700">名前</th>
-                            <th className="text-left py-3 px-4 font-medium text-gray-700">年齢</th>
-                            <th className="text-left py-3 px-4 font-medium text-gray-700">要介護度</th>
-                            <th className="text-left py-3 px-4 font-medium text-gray-700">ステータス</th>
-                            <th className="text-left py-3 px-4 font-medium text-gray-700"></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {applicants.map((applicant) => (
-                            <tr 
-                              key={applicant.id} 
-                              className="border-b border-gray-100 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200"
-                              onClick={() => {
-                                setSelectedApplicant(applicant);
-                                setCurrentView('detail');
-                              }}
-                            >
-                              <td className="py-3 px-4 text-gray-900">{applicant.applicationDate}</td>
-                              <td className="py-3 px-4 font-medium text-gray-900">{applicant.name}</td>
-                              <td className="py-3 px-4 text-gray-700">{applicant.age}歳</td>
-                              <td className="py-3 px-4 text-gray-700">{applicant.careLevel}</td>
-                              <td className="py-3 px-4">
-                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(applicant.status, applicant.applicationDate)}`}>
-                                  {applicant.status}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4">
-                                <ChevronRight className="w-4 h-4 text-gray-400" />
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+              <div className="card">
+                <div className="card-header">
+                  <div className="flex-between">
+                    <h2 style={{fontSize: '18px', fontWeight: '600'}}>申込者一覧</h2>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+                      <span style={{fontSize: '14px', color: '#6b7280'}}>{applicants.length}件</span>
+                      <button className="btn-primary">新規登録</button>
                     </div>
                   </div>
+                </div>
+                <div className="card-content">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>申込日</th>
+                        <th>名前</th>
+                        <th>年齢</th>
+                        <th>要介護度</th>
+                        <th>ステータス</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {applicants.map((applicant) => (
+                        <tr 
+                          key={applicant.id}
+                          onClick={() => {
+                            setSelectedApplicant(applicant);
+                            setCurrentView('detail');
+                          }}
+                        >
+                          <td>{applicant.applicationDate}</td>
+                          <td style={{fontWeight: '600'}}>{applicant.name}</td>
+                          <td>{applicant.age}歳</td>
+                          <td>{applicant.careLevel}</td>
+                          <td>
+                            <span className={`status-badge ${getStatusColor(applicant.status, applicant.applicationDate)}`}>
+                              {applicant.status}
+                            </span>
+                          </td>
+                          <td>→</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           );
         };
 
-        // React 18対応
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<CareFacilityApp />);
+        // React 17の古いAPIを使用
+        ReactDOM.render(<CareFacilityApp />, document.getElementById('root'));
+        console.log('App rendered successfully!');
     </script>
 </body>
 </html>

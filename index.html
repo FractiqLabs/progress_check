@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>特養入居進捗管理アプリ</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -14,7 +14,7 @@
     <div id="root"></div>
     
     <script type="text/babel">
-        const { ChevronRight, Plus, ArrowLeft, Heart, MessageCircle } = lucide;
+        const { ChevronRight, ArrowLeft, Heart, MessageCircle } = lucide;
 
         const CareFacilityApp = () => {
           const [currentView, setCurrentView] = React.useState('list');
@@ -249,270 +249,308 @@
               .filter(item => item.action)
               .map(item => item.action);
 
-            return React.createElement('div', { className: 'space-y-2' },
-              allActions.map((action, index) => {
-                const isCompleted = completedActions.includes(action);
-                
-                return React.createElement('button', {
-                  key: index,
-                  onClick: () => handleStatusUpdate(action),
-                  disabled: isCompleted,
-                  className: `w-full px-4 py-3 rounded-xl transition-all text-left ${
-                    isCompleted 
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                      : 'bg-blue-500 text-white hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5'
-                  }`
-                }, `${isCompleted ? '✓ ' : ''}${action}`);
-              })
+            return (
+              <div className="space-y-2">
+                {allActions.map((action, index) => {
+                  const isCompleted = completedActions.includes(action);
+                  
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleStatusUpdate(action)}
+                      disabled={isCompleted}
+                      className={`w-full px-4 py-3 rounded-xl transition-all text-left ${
+                        isCompleted 
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                          : 'bg-blue-500 text-white hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5'
+                      }`}
+                    >
+                      {isCompleted ? '✓ ' : ''}{action}
+                    </button>
+                  );
+                })}
+              </div>
             );
           };
 
           if (currentView === 'detail' && selectedApplicant) {
-            return React.createElement('div', { className: 'min-h-screen bg-gray-50 p-6' },
-              React.createElement('div', { className: 'max-w-6xl mx-auto' },
-                React.createElement('div', { className: 'bg-white rounded-lg shadow p-6 mb-6' },
-                  React.createElement('button', {
-                    onClick: () => setCurrentView('list'),
-                    className: 'flex items-center text-blue-600 mb-4 hover:text-blue-800'
-                  },
-                    React.createElement(ArrowLeft, { className: 'w-4 h-4 mr-2' }),
-                    '一覧に戻る'
-                  ),
-                  
-                  React.createElement('div', { className: 'flex justify-between items-start mb-4' },
-                    React.createElement('div', null,
-                      React.createElement('h1', { className: 'text-2xl font-bold text-gray-900 mb-2' },
-                        `${selectedApplicant.name}さん (${selectedApplicant.age}歳・${selectedApplicant.careLevel})`
-                      ),
-                      React.createElement('div', { 
-                        className: `inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedApplicant.status, selectedApplicant.applicationDate)}`
-                      }, selectedApplicant.status)
-                    )
-                  ),
+            return (
+              <div className="min-h-screen bg-gray-50 p-6">
+                <div className="max-w-6xl mx-auto">
+                  <div className="bg-white rounded-lg shadow p-6 mb-6">
+                    <button 
+                      onClick={() => setCurrentView('list')}
+                      className="flex items-center text-blue-600 mb-4 hover:text-blue-800"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      一覧に戻る
+                    </button>
+                    
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                          {selectedApplicant.name}さん ({selectedApplicant.age}歳・{selectedApplicant.careLevel})
+                        </h1>
+                        <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedApplicant.status, selectedApplicant.applicationDate)}`}>
+                          {selectedApplicant.status}
+                        </div>
+                      </div>
+                    </div>
 
-                  React.createElement('div', { className: 'grid grid-cols-2 gap-6 mt-6' },
-                    React.createElement('div', null,
-                      React.createElement('h3', { className: 'font-semibold text-gray-700 mb-2' }, '基本情報'),
-                      React.createElement('div', { className: 'space-y-2 text-sm' },
-                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, '申込日: '), selectedApplicant.applicationDate),
-                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, '担当者: '), selectedApplicant.assignee)
-                      )
-                    ),
-                    React.createElement('div', null,
-                      React.createElement('h3', { className: 'font-semibold text-gray-700 mb-2' }, '連絡先'),
-                      React.createElement('div', { className: 'space-y-2 text-sm' },
-                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, 'KP: '), selectedApplicant.kp),
-                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, 'KP連絡先: '), selectedApplicant.kpContact),
-                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, '在宅ケアマネ: '), selectedApplicant.careManager),
-                        React.createElement('div', null, React.createElement('span', { className: 'font-medium' }, 'CM連絡先: '), selectedApplicant.cmContact)
-                      )
-                    )
-                  )
-                ),
+                    <div className="grid grid-cols-2 gap-6 mt-6">
+                      <div>
+                        <h3 className="font-semibold text-gray-700 mb-2">基本情報</h3>
+                        <div className="space-y-2 text-sm">
+                          <div><span className="font-medium">申込日:</span> {selectedApplicant.applicationDate}</div>
+                          <div><span className="font-medium">担当者:</span> {selectedApplicant.assignee}</div>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-700 mb-2">連絡先</h3>
+                        <div className="space-y-2 text-sm">
+                          <div><span className="font-medium">KP:</span> {selectedApplicant.kp}</div>
+                          <div><span className="font-medium">KP連絡先:</span> {selectedApplicant.kpContact}</div>
+                          <div><span className="font-medium">在宅ケアマネ:</span> {selectedApplicant.careManager}</div>
+                          <div><span className="font-medium">CM連絡先:</span> {selectedApplicant.cmContact}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                React.createElement('div', { className: 'grid grid-cols-4 gap-6 h-screen' },
-                  React.createElement('div', { className: 'col-span-3 flex flex-col' },
-                    React.createElement('div', { className: 'bg-white rounded-lg shadow flex-1 flex flex-col' },
-                      React.createElement('div', { className: 'sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10' },
-                        React.createElement('div', { className: 'flex justify-between items-center' },
-                          React.createElement('h2', { className: 'text-lg font-semibold' }, 'タイムライン'),
-                          React.createElement('button', {
-                            onClick: handleFreePost,
-                            className: 'px-8 py-3 bg-green-500 text-white rounded-full hover:bg-green-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium'
-                          }, '投稿')
-                        )
-                      ),
+                  <div className="grid grid-cols-4 gap-6 h-screen">
+                    <div className="col-span-3 flex flex-col">
+                      <div className="bg-white rounded-lg shadow flex-1 flex flex-col">
+                        <div className="sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">タイムライン</h2>
+                            <button
+                              onClick={handleFreePost}
+                              className="px-8 py-3 bg-green-500 text-white rounded-full hover:bg-green-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium"
+                            >
+                              投稿
+                            </button>
+                          </div>
+                        </div>
 
-                      React.createElement('div', { className: 'flex-1 overflow-y-auto' },
-                        showPostForm && React.createElement('div', { className: 'sticky top-0 bg-white z-20 p-6 border-b border-gray-200' },
-                          React.createElement('div', { className: 'p-4 border-2 border-blue-200 rounded-lg bg-blue-50 shadow-lg' },
-                            postType && React.createElement('div', { className: 'mb-2 font-medium text-blue-800' }, postType),
-                            replyTo && React.createElement('div', { className: 'mb-2 text-sm text-gray-600' },
-                              `返信先: ${selectedApplicant.timeline.find(t => t.id === replyTo)?.author}`
-                            ),
-                            !postType && !replyTo && React.createElement('div', { className: 'mb-2 font-medium text-green-800' }, 'メモを追加'),
-                            React.createElement('textarea', {
-                              value: newPost,
-                              onChange: (e) => setNewPost(e.target.value),
-                              className: 'w-full p-3 border border-gray-300 rounded-lg resize-none',
-                              rows: 3,
-                              placeholder: 'メモを入力してください...',
-                              autoFocus: true
-                            }),
-                            React.createElement('div', { className: 'flex justify-end gap-2 mt-3' },
-                              React.createElement('button', {
-                                onClick: () => {
-                                  setShowPostForm(false);
-                                  setPostType('');
-                                  setReplyTo(null);
-                                },
-                                className: 'px-4 py-2 text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-all'
-                              }, 'キャンセル'),
-                              React.createElement('button', {
-                                onClick: submitPost,
-                                className: 'px-8 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium'
-                              }, '投稿')
-                            )
-                          )
-                        ),
+                        <div className="flex-1 overflow-y-auto">
+                          {showPostForm && (
+                            <div className="sticky top-0 bg-white z-20 p-6 border-b border-gray-200">
+                              <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 shadow-lg">
+                                {postType && (
+                                  <div className="mb-2 font-medium text-blue-800">{postType}</div>
+                                )}
+                                {replyTo && (
+                                  <div className="mb-2 text-sm text-gray-600">
+                                    返信先: {selectedApplicant.timeline.find(t => t.id === replyTo)?.author}
+                                  </div>
+                                )}
+                                {!postType && !replyTo && (
+                                  <div className="mb-2 font-medium text-green-800">メモを追加</div>
+                                )}
+                                <textarea
+                                  value={newPost}
+                                  onChange={(e) => setNewPost(e.target.value)}
+                                  className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                                  rows="3"
+                                  placeholder="メモを入力してください..."
+                                  autoFocus
+                                />
+                                <div className="flex justify-end gap-2 mt-3">
+                                  <button
+                                    onClick={() => {
+                                      setShowPostForm(false);
+                                      setPostType('');
+                                      setReplyTo(null);
+                                    }}
+                                    className="px-4 py-2 text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-all"
+                                  >
+                                    キャンセル
+                                  </button>
+                                  <button
+                                    onClick={submitPost}
+                                    className="px-8 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 font-medium"
+                                  >
+                                    投稿
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
-                        React.createElement('div', { className: 'p-6 pt-0' },
-                          React.createElement('div', { className: 'space-y-6 mt-6' },
-                            selectedApplicant.timeline.map((item, index) =>
-                              React.createElement('div', { key: item.id, className: 'border-l-2 border-gray-200 pl-6 pb-4' },
-                                React.createElement('div', { className: 'flex items-center justify-between mb-2' },
-                                  React.createElement('div', { className: 'flex items-center' },
-                                    React.createElement('span', { className: 'font-medium text-gray-900' }, item.author),
-                                    React.createElement('span', { className: 'text-gray-500 text-sm ml-2' }, `· ${formatTimeAgo(item.timestamp)}`),
-                                    item.action && React.createElement('span', { 
-                                      className: `ml-2 px-2 py-1 text-xs rounded-full font-medium ${
-                                        item.action === '入居完了' 
-                                          ? 'bg-red-100 text-red-800' 
-                                          : 'bg-blue-100 text-blue-800'
-                                      }`
-                                    }, item.action)
-                                  )
-                                ),
-                                React.createElement('div', { className: 'text-gray-700 whitespace-pre-line mb-3' }, item.content),
-                                
-                                React.createElement('div', { className: 'flex items-center gap-4 text-gray-500' },
-                                  React.createElement('button', {
-                                    onClick: () => handleLike(selectedApplicant.id, item.id),
-                                    className: `flex items-center gap-1 hover:text-red-500 transition-colors ${
-                                      likes[`${selectedApplicant.id}-${item.id}`] ? 'text-red-500' : ''
-                                    }`
-                                  },
-                                    React.createElement(Heart, { 
-                                      className: `w-4 h-4 ${
-                                        likes[`${selectedApplicant.id}-${item.id}`] ? 'fill-current' : ''
-                                      }`
-                                    }),
-                                    React.createElement('span', { className: 'text-sm' },
-                                      likes[`${selectedApplicant.id}-${item.id}`] ? '1' : '0'
-                                    )
-                                  ),
-                                  React.createElement('button', {
-                                    onClick: () => handleReply(item.id),
-                                    className: 'flex items-center gap-1 hover:text-blue-500 transition-colors'
-                                  },
-                                    React.createElement(MessageCircle, { className: 'w-4 h-4' }),
-                                    React.createElement('span', { className: 'text-sm' }, '返信')
-                                  )
-                                ),
+                          <div className="p-6 pt-0">
+                            <div className="space-y-6 mt-6">
+                              {selectedApplicant.timeline.map((item) => (
+                                <div key={item.id} className="border-l-2 border-gray-200 pl-6 pb-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center">
+                                      <span className="font-medium text-gray-900">{item.author}</span>
+                                      <span className="text-gray-500 text-sm ml-2">· {formatTimeAgo(item.timestamp)}</span>
+                                      {item.action && (
+                                        <span className={`ml-2 px-2 py-1 text-xs rounded-full font-medium ${
+                                          item.action === '入居完了' 
+                                            ? 'bg-red-100 text-red-800' 
+                                            : 'bg-blue-100 text-blue-800'
+                                        }`}>
+                                          {item.action}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="text-gray-700 whitespace-pre-line mb-3">{item.content}</div>
+                                  
+                                  <div className="flex items-center gap-4 text-gray-500">
+                                    <button
+                                      onClick={() => handleLike(selectedApplicant.id, item.id)}
+                                      className={`flex items-center gap-1 hover:text-red-500 transition-colors ${
+                                        likes[`${selectedApplicant.id}-${item.id}`] ? 'text-red-500' : ''
+                                      }`}
+                                    >
+                                      <Heart 
+                                        className={`w-4 h-4 ${
+                                          likes[`${selectedApplicant.id}-${item.id}`] ? 'fill-current' : ''
+                                        }`} 
+                                      />
+                                      <span className="text-sm">
+                                        {likes[`${selectedApplicant.id}-${item.id}`] ? '1' : '0'}
+                                      </span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleReply(item.id)}
+                                      className="flex items-center gap-1 hover:text-blue-500 transition-colors"
+                                    >
+                                      <MessageCircle className="w-4 h-4" />
+                                      <span className="text-sm">返信</span>
+                                    </button>
+                                  </div>
 
-                                item.replies && item.replies.length > 0 && React.createElement('div', { className: 'mt-4 space-y-3' },
-                                  item.replies.map((reply) =>
-                                    React.createElement('div', { key: reply.id, className: 'ml-6 pl-4 border-l border-gray-300' },
-                                      React.createElement('div', { className: 'flex items-center mb-1' },
-                                        React.createElement('span', { className: 'font-medium text-gray-900 text-sm' }, reply.author),
-                                        React.createElement('span', { className: 'text-gray-500 text-xs ml-2' }, `· ${formatTimeAgo(reply.timestamp)}`)
-                                      ),
-                                      React.createElement('div', { className: 'text-gray-700 text-sm whitespace-pre-line' }, reply.content)
-                                    )
-                                  )
-                                )
-                              )
-                            )
-                          )
-                        )
-                      )
-                    )
-                  ),
+                                  {item.replies && item.replies.length > 0 && (
+                                    <div className="mt-4 space-y-3">
+                                      {item.replies.map((reply) => (
+                                        <div key={reply.id} className="ml-6 pl-4 border-l border-gray-300">
+                                          <div className="flex items-center mb-1">
+                                            <span className="font-medium text-gray-900 text-sm">{reply.author}</span>
+                                            <span className="text-gray-500 text-xs ml-2">· {formatTimeAgo(reply.timestamp)}</span>
+                                          </div>
+                                          <div className="text-gray-700 text-sm whitespace-pre-line">{reply.content}</div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                  React.createElement('div', { className: 'flex flex-col' },
-                    React.createElement('div', { className: 'bg-white rounded-lg shadow flex-1 flex flex-col' },
-                      React.createElement('div', { className: 'sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10' },
-                        React.createElement('div', { className: 'flex justify-between items-center' },
-                          React.createElement('h2', { className: 'text-lg font-semibold' }, 'アクション'),
-                          React.createElement('button', {
-                            onClick: () => setShowActions(!showActions),
-                            className: 'px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5 transition-all'
-                          }, showActions ? '閉じる' : '表示')
-                        )
-                      ),
-                      
-                      showActions && React.createElement('div', { className: 'flex-1 overflow-y-auto p-6 pt-0' },
-                        React.createElement('div', { className: 'mt-6' },
-                          React.createElement(StatusButtons, { currentStatus: selectedApplicant.status })
-                        )
-                      ),
-                      
-                      !showActions && React.createElement('div', { className: 'flex-1 flex items-center justify-center p-6' },
-                        React.createElement('div', { className: 'text-center text-gray-500' },
-                          React.createElement('div', { className: 'text-lg mb-2' }, '📋'),
-                          React.createElement('div', { className: 'text-sm' }, '「表示」ボタンでアクション一覧を確認できます')
-                        )
-                      )
-                    )
-                  )
-                )
-              )
+                    <div className="flex flex-col">
+                      <div className="bg-white rounded-lg shadow flex-1 flex flex-col">
+                        <div className="sticky top-0 bg-white p-6 border-b border-gray-200 rounded-t-lg z-10">
+                          <div className="flex justify-between items-center">
+                            <h2 className="text-lg font-semibold">アクション</h2>
+                            <button
+                              onClick={() => setShowActions(!showActions)}
+                              className="px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5 transition-all"
+                            >
+                              {showActions ? '閉じる' : '表示'}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {showActions && (
+                          <div className="flex-1 overflow-y-auto p-6 pt-0">
+                            <div className="mt-6">
+                              <StatusButtons currentStatus={selectedApplicant.status} />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {!showActions && (
+                          <div className="flex-1 flex items-center justify-center p-6">
+                            <div className="text-center text-gray-500">
+                              <div className="text-lg mb-2">📋</div>
+                              <div className="text-sm">「表示」ボタンでアクション一覧を確認できます</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
           }
 
-          return React.createElement('div', { className: 'min-h-screen bg-gray-50 p-6' },
-            React.createElement('div', { className: 'max-w-6xl mx-auto' },
-              React.createElement('div', { className: 'bg-white rounded-lg shadow p-6 mb-6' },
-                React.createElement('h1', { className: 'text-2xl font-bold text-gray-900' }, '特養入居進捗管理'),
-                React.createElement('p', { className: 'text-gray-600 mt-2' }, '入居希望者の進捗状況を管理します')
-              ),
+          return (
+            <div className="min-h-screen bg-gray-50 p-6">
+              <div className="max-w-6xl mx-auto">
+                <div className="bg-white rounded-lg shadow p-6 mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">特養入居進捗管理</h1>
+                  <p className="text-gray-600 mt-2">入居希望者の進捗状況を管理します</p>
+                </div>
 
-              React.createElement('div', { className: 'bg-white rounded-lg shadow' },
-                React.createElement('div', { className: 'p-6' },
-                  React.createElement('div', { className: 'flex justify-between items-center mb-4' },
-                    React.createElement('h2', { className: 'text-lg font-semibold' }, '申込者一覧'),
-                    React.createElement('div', { className: 'flex items-center gap-4' },
-                      React.createElement('span', { className: 'text-sm text-gray-500' }, `${applicants.length}件`),
-                      React.createElement('button', { className: 'px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5 transition-all' }, '新規登録')
-                    )
-                  ),
+                <div className="bg-white rounded-lg shadow">
+                  <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-lg font-semibold">申込者一覧</h2>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm text-gray-500">{applicants.length}件</span>
+                        <button className="px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 hover:shadow-md transform hover:-translate-y-0.5 transition-all">
+                          新規登録
+                        </button>
+                      </div>
+                    </div>
 
-                  React.createElement('div', { className: 'overflow-x-auto' },
-                    React.createElement('table', { className: 'w-full' },
-                      React.createElement('thead', null,
-                        React.createElement('tr', { className: 'border-b border-gray-200' },
-                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '申込日'),
-                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '名前'),
-                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '年齢'),
-                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '要介護度'),
-                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, 'ステータス'),
-                          React.createElement('th', { className: 'text-left py-3 px-4 font-medium text-gray-700' }, '')
-                        )
-                      ),
-                      React.createElement('tbody', null,
-                        applicants.map((applicant) =>
-                          React.createElement('tr', {
-                            key: applicant.id,
-                            className: 'border-b border-gray-100 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200',
-                            onClick: () => {
-                              setSelectedApplicant(applicant);
-                              setCurrentView('detail');
-                            }
-                          },
-                            React.createElement('td', { className: 'py-3 px-4 text-gray-900' }, applicant.applicationDate),
-                            React.createElement('td', { className: 'py-3 px-4 font-medium text-gray-900' }, applicant.name),
-                            React.createElement('td', { className: 'py-3 px-4 text-gray-700' }, `${applicant.age}歳`),
-                            React.createElement('td', { className: 'py-3 px-4 text-gray-700' }, applicant.careLevel),
-                            React.createElement('td', { className: 'py-3 px-4' },
-                              React.createElement('span', { 
-                                className: `inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(applicant.status, applicant.applicationDate)}`
-                              }, applicant.status)
-                            ),
-                            React.createElement('td', { className: 'py-3 px-4' },
-                              React.createElement(ChevronRight, { className: 'w-4 h-4 text-gray-400' })
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
-              )
-            )
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-gray-200">
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">申込日</th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">名前</th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">年齢</th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">要介護度</th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">ステータス</th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {applicants.map((applicant) => (
+                            <tr 
+                              key={applicant.id} 
+                              className="border-b border-gray-100 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200"
+                              onClick={() => {
+                                setSelectedApplicant(applicant);
+                                setCurrentView('detail');
+                              }}
+                            >
+                              <td className="py-3 px-4 text-gray-900">{applicant.applicationDate}</td>
+                              <td className="py-3 px-4 font-medium text-gray-900">{applicant.name}</td>
+                              <td className="py-3 px-4 text-gray-700">{applicant.age}歳</td>
+                              <td className="py-3 px-4 text-gray-700">{applicant.careLevel}</td>
+                              <td className="py-3 px-4">
+                                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(applicant.status, applicant.applicationDate)}`}>
+                                  {applicant.status}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <ChevronRight className="w-4 h-4 text-gray-400" />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           );
         };
 
-        ReactDOM.render(React.createElement(CareFacilityApp), document.getElementById('root'));
+        // React 18対応
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CareFacilityApp />);
     </script>
 </body>
 </html>

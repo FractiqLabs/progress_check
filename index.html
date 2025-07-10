@@ -250,6 +250,7 @@
         }
         .action-flow {
             position: relative;
+            padding: 0 20px;
         }
         .action-flow::before {
             content: '';
@@ -257,20 +258,45 @@
             left: 50%;
             top: 0;
             bottom: 0;
-            width: 2px;
-            background: linear-gradient(to bottom, #8b7859, #6b5d47);
+            width: 3px;
+            background: linear-gradient(180deg, #d4af37 0%, #8b7859 50%, #6b5d47 100%);
             transform: translateX(-50%);
             z-index: 1;
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+            border-radius: 2px;
         }
-        .action-flow::after {
-            content: '↓';
+        .action-flow .action-btn {
+            position: relative;
+            z-index: 10;
+            margin-bottom: 12px;
+        }
+        .action-flow .action-btn:not(:last-child)::after {
+            content: '';
             position: absolute;
             left: 50%;
-            bottom: -10px;
+            bottom: -18px;
             transform: translateX(-50%);
-            color: #8b7859;
-            font-size: 16px;
-            z-index: 2;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid #d4af37;
+            z-index: 15;
+            filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.4));
+            animation: flowPulse 2s ease-in-out infinite;
+        }
+        @keyframes flowPulse {
+            0%, 100% {
+                opacity: 0.7;
+                transform: translateX(-50%) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1.1);
+            }
+        }
+        .action-flow .action-btn:hover::after {
+            animation-duration: 0.5s;
         }
         .like-btn, .reply-btn {
             display: flex;
@@ -656,38 +682,13 @@
           };
 
           const getCurrentStatus = (applicant) => {
-            if (!applicant.timeline || applicant.timeline.length === 0) return applicant.status;
-            
-            const latestAction = applicant.timeline
-              .filter(item => item.action)
-              .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-              
-            if (!latestAction) return applicant.status;
-            
-            const statusMapping = {
-              '申込書受領': '申込書受領',
-              '実調日程調整中': '実調日程調整中',
-              '実調完了': '健康診断書待ち',
-              '健康診断書依頼': '健康診断書待ち',
-              '健康診断書受領': '判定会議中',
-              '判定会議中': '入居決定',
-              '入居決定': '入居日調整中',
-              '入居日調整中': '入居日調整中',
-              '書類送付済': '入居準備中',
-              '入居準備完了': '入居準備完了',
-              '入居完了': '入居完了'
-            };
-            
-            return statusMapping[latestAction.action] || applicant.status;
+            // まず実際のstatusフィールドを確認
+            return applicant.status;
           };
 
           const sortedApplicants = React.useMemo(() => {
             let sortableApplicants = [...applicants]
-              .filter(applicant => !hiddenApplicants.includes(applicant.id))
-              .map(applicant => ({
-                ...applicant,
-                status: getCurrentStatus(applicant)
-              }));
+              .filter(applicant => !hiddenApplicants.includes(applicant.id));
               
             if (sortConfig.key) {
               sortableApplicants.sort((a, b) => {
@@ -864,8 +865,28 @@
                     replies: []
                   };
                   
+                  // ステータス更新ロジック
+                  let updatedStatus = app.status;
+                  if (postType) {
+                    const statusMapping = {
+                      '申込書受領': '申込書受領',
+                      '実調日程調整中': '実調日程調整中',
+                      '実調完了': '健康診断書待ち',
+                      '健康診断書依頼': '健康診断書待ち',
+                      '健康診断書受領': '判定会議中',
+                      '判定会議中': '入居決定',
+                      '入居決定': '入居日調整中',
+                      '入居日調整中': '入居日調整中',
+                      '書類送付済': '入居準備中',
+                      '入居準備完了': '入居準備完了',
+                      '入居完了': '入居完了'
+                    };
+                    updatedStatus = statusMapping[postType] || app.status;
+                  }
+                  
                   return {
                     ...app,
+                    status: updatedStatus,
                     timeline: [newTimelineItem, ...app.timeline]
                   };
                 }
@@ -909,7 +930,11 @@
               <div className="container">
                 <div className="card">
                   <div className="card-content">
-                    <a href="#" onClick={() => setCurrentView('list')} className="back-btn">
+                    <a href="#" onClick={(e) => {
+                      e.preventDefault();
+                      setCurrentView('list');
+                      setSelectedApplicant(null);
+                    }} className="back-btn">
                       ← 一覧に戻る
                     </a>
                     

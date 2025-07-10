@@ -11,7 +11,8 @@
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background-color: #f9fafb;
+            background: linear-gradient(135deg, #faf8f4 0%, #f3f1ea 100%);
+            min-height: 100vh;
         }
         .container {
             max-width: 1200px;
@@ -19,14 +20,15 @@
             padding: 24px;
         }
         .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background: #fdfcf8;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(139, 120, 93, 0.1);
             margin-bottom: 24px;
+            border: 1px solid #f0ede4;
         }
         .card-header {
             padding: 24px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #ede7d6;
         }
         .card-content {
             padding: 24px;
@@ -40,23 +42,32 @@
             transition: all 0.2s;
         }
         .btn-primary {
-            background-color: #3b82f6;
-            color: white;
+            background: linear-gradient(135deg, #8b7859 0%, #6b5d47 100%);
+            color: #fdfcf8;
+            border: 1px solid #6b5d47;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(139, 120, 93, 0.25);
+            transform: translateY(0);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         .btn-primary:hover {
-            background-color: #2563eb;
-            transform: translateY(-1px);
+            background: linear-gradient(135deg, #a38969 0%, #7a6a57 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 120, 93, 0.35);
         }
         .btn-green {
-            background-color: #10b981;
-            color: white;
+            background: linear-gradient(135deg, #8b7859 0%, #6b5d47 100%);
+            color: #fdfcf8;
             border-radius: 24px;
             padding: 12px 32px;
+            box-shadow: 0 4px 12px rgba(139, 120, 93, 0.25);
         }
         .btn-green:hover {
-            background-color: #059669;
+            background: linear-gradient(135deg, #a38969 0%, #7a6a57 100%);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 20px rgba(139, 120, 93, 0.35);
         }
         .table {
             width: 100%;
@@ -66,17 +77,34 @@
         .table td {
             text-align: left;
             padding: 12px 16px;
-            border-bottom: 1px solid #f3f4f6;
+            border-bottom: 1px solid #f0ede4;
         }
         .table th {
             font-weight: 600;
-            color: #374151;
+            color: #4a3f2a;
+            background: #f7f4ed;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+            transition: all 0.2s;
+        }
+        .table th:hover {
+            background: #f0ede4;
+            color: #3d3522;
+        }
+        .sort-icon {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #8b7859;
         }
         .table tr:hover {
-            background-color: #f9fafb;
+            background-color: #f9f6f0;
             cursor: pointer;
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(139, 120, 93, 0.1);
         }
         .status-badge {
             display: inline-block;
@@ -86,19 +114,19 @@
             font-weight: 500;
         }
         .status-green {
-            background-color: #dcfce7;
-            color: #166534;
-            border: 1px solid #bbf7d0;
+            background-color: #e8f5e8;
+            color: #2d5a2d;
+            border: 1px solid #b8d8b8;
         }
         .status-yellow {
-            background-color: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fde68a;
+            background-color: #fdf6e0;
+            color: #7a5c00;
+            border: 1px solid #e8d4a0;
         }
         .status-red {
-            background-color: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
+            background-color: #f8e8e8;
+            color: #8b3a3a;
+            border: 1px solid #d8a8a8;
         }
         .timeline-item {
             border-left: 2px solid #e5e7eb;
@@ -250,6 +278,148 @@
         .reply-item {
             margin-bottom: 12px;
         }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #fdfcf8;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(139, 120, 93, 0.3);
+            border: 1px solid #f0ede4;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #ede7d6;
+            padding-bottom: 16px;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #4a3f2a;
+        }
+        .close-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #8b7859;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .close-button:hover {
+            background: #f0ede4;
+            color: #4a3f2a;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #4a3f2a;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0ddd4;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fdfcf8;
+            color: #4a3f2a;
+            transition: all 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #8b7859;
+            box-shadow: 0 0 0 2px rgba(139, 120, 93, 0.1);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            border-top: 1px solid #ede7d6;
+            padding-top: 16px;
+        }
+        .btn-secondary {
+            background: #f7f4ed;
+            color: #4a3f2a;
+            border: 1px solid #e0ddd4;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            background: #f0ede4;
+            border-color: #8b7859;
+        }
+        .main-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #4a3f2a;
+            background: linear-gradient(135deg, #8b7859 0%, #6b5d47 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .main-title::before {
+            content: "🏠";
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #4a3f2a;
+            background: #f7f4ed;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #e0ddd4;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title::before {
+            content: "📋";
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -259,6 +429,8 @@
         const CareFacilityApp = () => {
           const [currentView, setCurrentView] = React.useState('list');
           const [selectedApplicant, setSelectedApplicant] = React.useState(null);
+          const [showModal, setShowModal] = React.useState(false);
+          const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
           const [applicants, setApplicants] = React.useState([
             {
               id: 1,
@@ -361,6 +533,16 @@
           const [replyTo, setReplyTo] = React.useState(null);
           const [likes, setLikes] = React.useState({});
           const [showActions, setShowActions] = React.useState(false);
+          const [formData, setFormData] = React.useState({
+            name: '',
+            age: '',
+            careLevel: '',
+            kp: '',
+            kpContact: '',
+            careManager: '',
+            cmContact: '',
+            assignee: ''
+          });
 
           const getStatusColor = (status, applicationDate) => {
             const today = new Date();
@@ -382,6 +564,93 @@
             if (diffDays === 1) return '1日前';
             if (diffDays < 7) return `${diffDays}日前`;
             return timestamp;
+          };
+
+          const handleSort = (key) => {
+            let direction = 'asc';
+            if (sortConfig.key === key && sortConfig.direction === 'asc') {
+              direction = 'desc';
+            }
+            setSortConfig({ key, direction });
+          };
+
+          const getSortIcon = (key) => {
+            if (sortConfig.key !== key) return '↕';
+            return sortConfig.direction === 'asc' ? '↑' : '↓';
+          };
+
+          const sortedApplicants = React.useMemo(() => {
+            let sortableApplicants = [...applicants];
+            if (sortConfig.key) {
+              sortableApplicants.sort((a, b) => {
+                let aValue = a[sortConfig.key];
+                let bValue = b[sortConfig.key];
+                
+                if (sortConfig.key === 'applicationDate') {
+                  aValue = new Date(aValue);
+                  bValue = new Date(bValue);
+                } else if (sortConfig.key === 'age') {
+                  aValue = parseInt(aValue);
+                  bValue = parseInt(bValue);
+                }
+                
+                if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+              });
+            }
+            return sortableApplicants;
+          }, [applicants, sortConfig]);
+
+          const handleInputChange = (e) => {
+            const { name, value } = e.target;
+            setFormData(prev => ({
+              ...prev,
+              [name]: value
+            }));
+          };
+
+          const handleSubmit = (e) => {
+            e.preventDefault();
+            if (!formData.name || !formData.age || !formData.careLevel) {
+              alert('必須項目を入力してください。');
+              return;
+            }
+            
+            const newApplicant = {
+              id: applicants.length + 1,
+              applicationDate: new Date().toISOString().split('T')[0],
+              name: formData.name,
+              age: parseInt(formData.age),
+              careLevel: formData.careLevel,
+              status: '申込書受領',
+              assignee: formData.assignee || '担当者未定',
+              kp: formData.kp,
+              kpContact: formData.kpContact,
+              careManager: formData.careManager,
+              cmContact: formData.cmContact,
+              timeline: [{
+                id: 1,
+                author: formData.assignee || '担当者未定',
+                timestamp: '今',
+                content: '申込書受領・台帳入力完了',
+                action: '申込書受領',
+                replies: []
+              }]
+            };
+            
+            setApplicants(prev => [...prev, newApplicant]);
+            setFormData({
+              name: '',
+              age: '',
+              careLevel: '',
+              kp: '',
+              kpContact: '',
+              careManager: '',
+              cmContact: '',
+              assignee: ''
+            });
+            setShowModal(false);
           };
 
           const handleStatusUpdate = (type) => {
@@ -660,18 +929,18 @@
             <div className="container">
               <div className="card">
                 <div className="card-content">
-                  <h1 style={{fontSize: '24px', fontWeight: 'bold'}}>特養入居進捗管理</h1>
-                  <p style={{color: '#6b7280', marginTop: '8px'}}>入居希望者の進捗状況を管理します</p>
+                  <h1 className="main-title">特養入居進捗管理</h1>
+                  <p style={{color: '#8b7859', marginTop: '8px', textAlign: 'center'}}>入居希望者の進捗状況を管理します</p>
                 </div>
               </div>
 
               <div className="card">
                 <div className="card-header">
                   <div className="flex-between">
-                    <h2 style={{fontSize: '18px', fontWeight: '600'}}>申込者一覧</h2>
+                    <h2 className="section-title">申込者一覧</h2>
                     <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-                      <span style={{fontSize: '14px', color: '#6b7280'}}>{applicants.length}件</span>
-                      <button className="btn-primary">新規登録</button>
+                      <span style={{fontSize: '14px', color: '#8b7859'}}>{applicants.length}件</span>
+                      <button className="btn-primary" onClick={() => setShowModal(true)}>新規登録</button>
                     </div>
                   </div>
                 </div>
@@ -679,16 +948,34 @@
                   <table className="table">
                     <thead>
                       <tr>
-                        <th>申込日</th>
-                        <th>名前</th>
-                        <th>年齢</th>
-                        <th>要介護度</th>
-                        <th>ステータス</th>
-                        <th></th>
+                        <th onClick={() => handleSort('applicationDate')}>
+                          申込日
+                          <span className="sort-icon">{getSortIcon('applicationDate')}</span>
+                        </th>
+                        <th onClick={() => handleSort('name')}>
+                          名前
+                          <span className="sort-icon">{getSortIcon('name')}</span>
+                        </th>
+                        <th onClick={() => handleSort('age')}>
+                          年齢
+                          <span className="sort-icon">{getSortIcon('age')}</span>
+                        </th>
+                        <th onClick={() => handleSort('careLevel')}>
+                          要介護度
+                          <span className="sort-icon">{getSortIcon('careLevel')}</span>
+                        </th>
+                        <th onClick={() => handleSort('status')}>
+                          ステータス
+                          <span className="sort-icon">{getSortIcon('status')}</span>
+                        </th>
+                        <th onClick={() => handleSort('careManager')}>
+                          担当CM
+                          <span className="sort-icon">{getSortIcon('careManager')}</span>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {applicants.map((applicant) => (
+                      {sortedApplicants.map((applicant) => (
                         <tr 
                           key={applicant.id}
                           onClick={() => {
@@ -705,13 +992,129 @@
                               {applicant.status}
                             </span>
                           </td>
-                          <td>→</td>
+                          <td style={{fontWeight: '500', color: '#4a3f2a'}}>{applicant.careManager}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               </div>
+              
+              {showModal && (
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                  <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-header">
+                      <h3 className="modal-title">新規申込者登録</h3>
+                      <button className="close-button" onClick={() => setShowModal(false)}>×</button>
+                    </div>
+                    <form onSubmit={handleSubmit}>
+                      <div className="form-group">
+                        <label className="form-label">名前 *</label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          className="form-input"
+                          required
+                        />
+                      </div>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label className="form-label">年齢 *</label>
+                          <input
+                            type="number"
+                            name="age"
+                            value={formData.age}
+                            onChange={handleInputChange}
+                            className="form-input"
+                            min="0"
+                            max="120"
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">要介護度 *</label>
+                          <select
+                            name="careLevel"
+                            value={formData.careLevel}
+                            onChange={handleInputChange}
+                            className="form-input"
+                            required
+                          >
+                            <option value="">選択してください</option>
+                            <option value="要支援1">要支援1</option>
+                            <option value="要支援2">要支援2</option>
+                            <option value="要介護1">要介護1</option>
+                            <option value="要介護2">要介護2</option>
+                            <option value="要介護3">要介護3</option>
+                            <option value="要介護4">要介護4</option>
+                            <option value="要介護5">要介護5</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">KP（キーパーソン）</label>
+                        <input
+                          type="text"
+                          name="kp"
+                          value={formData.kp}
+                          onChange={handleInputChange}
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">KP連絡先</label>
+                        <input
+                          type="tel"
+                          name="kpContact"
+                          value={formData.kpContact}
+                          onChange={handleInputChange}
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">在宅ケアマネ</label>
+                        <input
+                          type="text"
+                          name="careManager"
+                          value={formData.careManager}
+                          onChange={handleInputChange}
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">CM連絡先</label>
+                        <input
+                          type="tel"
+                          name="cmContact"
+                          value={formData.cmContact}
+                          onChange={handleInputChange}
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">担当者</label>
+                        <input
+                          type="text"
+                          name="assignee"
+                          value={formData.assignee}
+                          onChange={handleInputChange}
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="modal-buttons">
+                        <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
+                          キャンセル
+                        </button>
+                        <button type="submit" className="btn-primary">
+                          保存
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           );
         };

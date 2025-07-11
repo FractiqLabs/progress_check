@@ -356,16 +356,18 @@
             margin-bottom: 12px;
         }
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            z-index: 10000 !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         .modal-content {
             background: #fdfcf8;
@@ -796,23 +798,25 @@
             
             console.log('現在のshowEditModal状態:', showEditModal);
             
-            // フォームデータを設定
-            const formData = {
-              name: selectedApplicant.name || '',
-              age: selectedApplicant.age || '',
-              careLevel: selectedApplicant.careLevel || '',
-              address: selectedApplicant.address || '',
-              kp: selectedApplicant.kp || '',
-              kpAge: selectedApplicant.kpAge || '',
-              kpAddress: selectedApplicant.kpAddress || ''
+            // フォームデータを安全に設定
+            const safeFormData = {
+              name: String(selectedApplicant.name || ''),
+              age: String(selectedApplicant.age || ''),
+              careLevel: String(selectedApplicant.careLevel || ''),
+              address: String(selectedApplicant.address || ''),
+              kp: String(selectedApplicant.kp || ''),
+              kpAge: String(selectedApplicant.kpAge || ''),
+              kpAddress: String(selectedApplicant.kpAddress || '')
             };
             
-            console.log('設定するフォームデータ:', formData);
-            setEditFormData(formData);
+            console.log('設定するフォームデータ:', safeFormData);
+            setEditFormData(safeFormData);
             
-            // モーダルを表示
-            setShowEditModal(true);
-            console.log('基本情報編集モーダルを表示しました');
+            // 少し遅延してモーダルを表示
+            setTimeout(() => {
+              setShowEditModal(true);
+              console.log('基本情報編集モーダルを表示しました');
+            }, 10);
           };
 
           const handleSaveEdit = (e) => {
@@ -999,6 +1003,7 @@
           };
 
           if (currentView === 'detail' && selectedApplicant) {
+            console.log('詳細画面を表示中:', selectedApplicant.name, 'showEditModal:', showEditModal);
             const allActions = [
               '申込書受領', '実調日程調整中', '実調完了', '健康診断書依頼',
               '健康診断書受領', '判定会議中', '入居決定', '入居日調整中',
@@ -1230,7 +1235,7 @@
                 
                 {/* 基本情報編集モーダル - 詳細画面内に配置 */}
                 {showEditModal && (
-                  <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+                  <div className="modal-overlay" onClick={() => setShowEditModal(false)} style={{display: 'flex', zIndex: 1000}}>
                     <div className="modal-content edit-info-modal" onClick={(e) => e.stopPropagation()}>
                       <div className="modal-header">
                         <h3 className="modal-title">基本情報編集</h3>
@@ -1245,7 +1250,7 @@
                               <input
                                 type="text"
                                 name="name"
-                                value={editFormData.name}
+                                value={editFormData.name || ''}
                                 onChange={handleEditInputChange}
                                 className="form-input"
                                 required
@@ -1256,7 +1261,7 @@
                               <input
                                 type="number"
                                 name="age"
-                                value={editFormData.age}
+                                value={editFormData.age || ''}
                                 onChange={handleEditInputChange}
                                 className="form-input"
                                 min="0"
@@ -1269,7 +1274,7 @@
                             <label className="form-label">要介護度 *</label>
                             <select
                               name="careLevel"
-                              value={editFormData.careLevel}
+                              value={editFormData.careLevel || ''}
                               onChange={handleEditInputChange}
                               className="form-input"
                               required
@@ -1289,7 +1294,7 @@
                             <input
                               type="text"
                               name="address"
-                              value={editFormData.address}
+                              value={editFormData.address || ''}
                               onChange={handleEditInputChange}
                               className="form-input"
                             />
@@ -1303,7 +1308,7 @@
                             <input
                               type="text"
                               name="kp"
-                              value={editFormData.kp}
+                              value={editFormData.kp || ''}
                               onChange={handleEditInputChange}
                               className="form-input"
                             />
@@ -1313,7 +1318,7 @@
                             <input
                               type="number"
                               name="kpAge"
-                              value={editFormData.kpAge}
+                              value={editFormData.kpAge || ''}
                               onChange={handleEditInputChange}
                               className="form-input"
                               min="0"
@@ -1325,7 +1330,7 @@
                             <input
                               type="text"
                               name="kpAddress"
-                              value={editFormData.kpAddress}
+                              value={editFormData.kpAddress || ''}
                               onChange={handleEditInputChange}
                               className="form-input"
                             />

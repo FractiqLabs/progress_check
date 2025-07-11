@@ -1227,6 +1227,122 @@
                     </div>
                   </div>
                 </div>
+                
+                {/* 基本情報編集モーダル - 詳細画面内に配置 */}
+                {showEditModal && (
+                  <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+                    <div className="modal-content edit-info-modal" onClick={(e) => e.stopPropagation()}>
+                      <div className="modal-header">
+                        <h3 className="modal-title">基本情報編集</h3>
+                        <button className="close-button" onClick={() => setShowEditModal(false)}>×</button>
+                      </div>
+                      <form onSubmit={handleSaveEdit}>
+                        <div className="info-section person-info">
+                          <div className="section-header">本人情報</div>
+                          <div className="form-row">
+                            <div className="form-group">
+                              <label className="form-label">名前 *</label>
+                              <input
+                                type="text"
+                                name="name"
+                                value={editFormData.name}
+                                onChange={handleEditInputChange}
+                                className="form-input"
+                                required
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label className="form-label">年齢 *</label>
+                              <input
+                                type="number"
+                                name="age"
+                                value={editFormData.age}
+                                onChange={handleEditInputChange}
+                                className="form-input"
+                                min="0"
+                                max="120"
+                                required
+                              />
+                            </div>
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">要介護度 *</label>
+                            <select
+                              name="careLevel"
+                              value={editFormData.careLevel}
+                              onChange={handleEditInputChange}
+                              className="form-input"
+                              required
+                            >
+                              <option value="">選択してください</option>
+                              <option value="要支援1">要支援1</option>
+                              <option value="要支援2">要支援2</option>
+                              <option value="要介護1">要介護1</option>
+                              <option value="要介護2">要介護2</option>
+                              <option value="要介護3">要介護3</option>
+                              <option value="要介護4">要介護4</option>
+                              <option value="要介護5">要介護5</option>
+                            </select>
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">住所</label>
+                            <input
+                              type="text"
+                              name="address"
+                              value={editFormData.address}
+                              onChange={handleEditInputChange}
+                              className="form-input"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="info-section kp-info">
+                          <div className="section-header">KP情報</div>
+                          <div className="form-group">
+                            <label className="form-label">KP</label>
+                            <input
+                              type="text"
+                              name="kp"
+                              value={editFormData.kp}
+                              onChange={handleEditInputChange}
+                              className="form-input"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">KP年齢</label>
+                            <input
+                              type="number"
+                              name="kpAge"
+                              value={editFormData.kpAge}
+                              onChange={handleEditInputChange}
+                              className="form-input"
+                              min="0"
+                              max="120"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">KP住所</label>
+                            <input
+                              type="text"
+                              name="kpAddress"
+                              value={editFormData.kpAddress}
+                              onChange={handleEditInputChange}
+                              className="form-input"
+                            />
+                          </div>
+                        </div>
+                        <div className="modal-buttons">
+                          <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>
+                            キャンセル
+                          </button>
+                          <button type="submit" className="btn-primary">
+                            保存
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           }
@@ -1426,121 +1542,6 @@
                       </div>
                       <div className="modal-buttons">
                         <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
-                          キャンセル
-                        </button>
-                        <button type="submit" className="btn-primary">
-                          保存
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              )}
-              
-              {showEditModal && (
-                <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-                  <div className="modal-content edit-info-modal" onClick={(e) => e.stopPropagation()}>
-                    <div className="modal-header">
-                      <h3 className="modal-title">基本情報編集</h3>
-                      <button className="close-button" onClick={() => setShowEditModal(false)}>×</button>
-                    </div>
-                    <form onSubmit={handleSaveEdit}>
-                      <div className="info-section person-info">
-                        <div className="section-header">本人情報</div>
-                        <div className="form-row">
-                          <div className="form-group">
-                            <label className="form-label">名前 *</label>
-                            <input
-                              type="text"
-                              name="name"
-                              value={editFormData.name}
-                              onChange={handleEditInputChange}
-                              className="form-input"
-                              required
-                            />
-                          </div>
-                          <div className="form-group">
-                            <label className="form-label">年齢 *</label>
-                            <input
-                              type="number"
-                              name="age"
-                              value={editFormData.age}
-                              onChange={handleEditInputChange}
-                              className="form-input"
-                              min="0"
-                              max="120"
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">要介護度 *</label>
-                          <select
-                            name="careLevel"
-                            value={editFormData.careLevel}
-                            onChange={handleEditInputChange}
-                            className="form-input"
-                            required
-                          >
-                            <option value="">選択してください</option>
-                            <option value="要支援1">要支援1</option>
-                            <option value="要支援2">要支援2</option>
-                            <option value="要介護1">要介護1</option>
-                            <option value="要介護2">要介護2</option>
-                            <option value="要介護3">要介護3</option>
-                            <option value="要介護4">要介護4</option>
-                            <option value="要介護5">要介護5</option>
-                          </select>
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">住所</label>
-                          <input
-                            type="text"
-                            name="address"
-                            value={editFormData.address}
-                            onChange={handleEditInputChange}
-                            className="form-input"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="info-section kp-info">
-                        <div className="section-header">KP情報</div>
-                        <div className="form-group">
-                          <label className="form-label">KP</label>
-                          <input
-                            type="text"
-                            name="kp"
-                            value={editFormData.kp}
-                            onChange={handleEditInputChange}
-                            className="form-input"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">KP年齢</label>
-                          <input
-                            type="number"
-                            name="kpAge"
-                            value={editFormData.kpAge}
-                            onChange={handleEditInputChange}
-                            className="form-input"
-                            min="0"
-                            max="120"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">KP住所</label>
-                          <input
-                            type="text"
-                            name="kpAddress"
-                            value={editFormData.kpAddress}
-                            onChange={handleEditInputChange}
-                            className="form-input"
-                          />
-                        </div>
-                      </div>
-                      <div className="modal-buttons">
-                        <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>
                           キャンセル
                         </button>
                         <button type="submit" className="btn-primary">

@@ -106,6 +106,24 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(139, 120, 93, 0.1);
         }
+        .table tr:hover .delete-btn {
+            opacity: 1;
+        }
+        .delete-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        .delete-btn:hover {
+            background: #dc2626;
+        }
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -265,6 +283,17 @@
             box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
             border-radius: 2px;
         }
+        .action-flow .action-btn:last-child::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            height: 50%;
+            width: 3px;
+            background: #fdfcf8;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
         .action-flow .action-btn {
             position: relative;
             z-index: 10;
@@ -284,6 +313,9 @@
             z-index: 15;
             filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.4));
             animation: flowPulse 2s ease-in-out infinite;
+        }
+        .action-flow .action-btn:last-child:not(:only-child)::after {
+            display: none;
         }
         @keyframes flowPulse {
             0%, 100% {
@@ -502,6 +534,36 @@
         .edit-info-modal {
             max-width: 600px;
         }
+        .info-section {
+            margin-bottom: 24px;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0ddd4;
+        }
+        .person-info {
+            background: #f0f8ff;
+            border-color: #b8d8f0;
+        }
+        .kp-info {
+            background: #f0fff0;
+            border-color: #b8d8b8;
+        }
+        .section-header {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: #4a3f2a;
+            border-bottom: 2px solid #e0ddd4;
+            padding-bottom: 8px;
+        }
+        .person-info .section-header {
+            color: #1e40af;
+            border-bottom-color: #b8d8f0;
+        }
+        .kp-info .section-header {
+            color: #2d5a2d;
+            border-bottom-color: #b8d8b8;
+        }
     </style>
 </head>
 <body>
@@ -645,6 +707,7 @@
             kpAge: '',
             kpAddress: ''
           });
+          const [hoveredRow, setHoveredRow] = React.useState(null);
 
           const getStatusColor = (status, applicationDate) => {
             const today = new Date();
@@ -728,6 +791,7 @@
           };
 
           const handleEditBasicInfo = () => {
+            console.log('基本情報編集ボタンがクリックされました');
             setEditFormData({
               name: selectedApplicant.name,
               age: selectedApplicant.age,
@@ -738,6 +802,7 @@
               kpAddress: selectedApplicant.kpAddress || ''
             });
             setShowEditModal(true);
+            console.log('基本情報編集モーダルを表示しました');
           };
 
           const handleSaveEdit = (e) => {
@@ -763,6 +828,14 @@
             const updatedSelected = updatedApplicants.find(app => app.id === selectedApplicant.id);
             setSelectedApplicant(updatedSelected);
             setShowEditModal(false);
+          };
+
+          const handleDelete = (e, applicantId) => {
+            e.stopPropagation();
+            const applicant = applicants.find(app => app.id === applicantId);
+            if (window.confirm(`${applicant.name}さんを削除しますか？\n\nこの操作は元に戻せません。`)) {
+              setApplicants(prev => prev.filter(app => app.id !== applicantId));
+            }
           };
 
           const handleSubmit = (e) => {
@@ -934,6 +1007,8 @@
                       e.preventDefault();
                       setCurrentView('list');
                       setSelectedApplicant(null);
+                      setShowEditModal(false);
+                      setShowModal(false);
                     }} className="back-btn">
                       ← 一覧に戻る
                     </a>
@@ -1142,7 +1217,6 @@
               <div className="card">
                 <div className="card-content">
                   <h1 className="main-title">特養入居進捗管理</h1>
-                  <p style={{color: '#8b7859', marginTop: '8px', textAlign: 'center'}}>入居希望者の進捗状況を管理します</p>
                 </div>
               </div>
 
@@ -1151,7 +1225,7 @@
                   <div className="flex-between">
                     <h2 className="section-title">申込者一覧</h2>
                     <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-                      <span style={{fontSize: '14px', color: '#8b7859'}}>{applicants.length}件</span>
+                      <span style={{fontSize: '14px', color: '#8b7859'}}>{sortedApplicants.length}件</span>
                       <button className="btn-primary" onClick={() => setShowModal(true)}>新規登録</button>
                     </div>
                   </div>
@@ -1194,6 +1268,8 @@
                             setSelectedApplicant(applicant);
                             setCurrentView('detail');
                           }}
+                          onMouseEnter={() => setHoveredRow(applicant.id)}
+                          onMouseLeave={() => setHoveredRow(null)}
                         >
                           <td>{applicant.applicationDate}</td>
                           <td style={{fontWeight: '600'}}>{applicant.name}</td>
@@ -1204,7 +1280,16 @@
                               {applicant.status}
                             </span>
                           </td>
-                          <td style={{fontWeight: '500', color: '#4a3f2a'}}>{applicant.careManager}</td>
+                          <td style={{fontWeight: '500', color: '#4a3f2a'}}>
+                            {applicant.careManager}
+                            <button 
+                              className="delete-btn"
+                              onClick={(e) => handleDelete(e, applicant.id)}
+                              style={{opacity: hoveredRow === applicant.id ? 1 : 0}}
+                            >
+                              削除
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -1266,7 +1351,7 @@
                         </div>
                       </div>
                       <div className="form-group">
-                        <label className="form-label">KP（キーパーソン）</label>
+                        <label className="form-label">KP</label>
                         <input
                           type="text"
                           name="kp"
@@ -1336,72 +1421,77 @@
                       <button className="close-button" onClick={() => setShowEditModal(false)}>×</button>
                     </div>
                     <form onSubmit={handleSaveEdit}>
-                      <div className="form-row">
+                      <div className="info-section person-info">
+                        <div className="section-header">本人情報</div>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label className="form-label">名前 *</label>
+                            <input
+                              type="text"
+                              name="name"
+                              value={editFormData.name}
+                              onChange={handleEditInputChange}
+                              className="form-input"
+                              required
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">年齢 *</label>
+                            <input
+                              type="number"
+                              name="age"
+                              value={editFormData.age}
+                              onChange={handleEditInputChange}
+                              className="form-input"
+                              min="0"
+                              max="120"
+                              required
+                            />
+                          </div>
+                        </div>
                         <div className="form-group">
-                          <label className="form-label">名前 *</label>
+                          <label className="form-label">要介護度 *</label>
+                          <select
+                            name="careLevel"
+                            value={editFormData.careLevel}
+                            onChange={handleEditInputChange}
+                            className="form-input"
+                            required
+                          >
+                            <option value="">選択してください</option>
+                            <option value="要支援1">要支援1</option>
+                            <option value="要支援2">要支援2</option>
+                            <option value="要介護1">要介護1</option>
+                            <option value="要介護2">要介護2</option>
+                            <option value="要介護3">要介護3</option>
+                            <option value="要介護4">要介護4</option>
+                            <option value="要介護5">要介護5</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">住所</label>
                           <input
                             type="text"
-                            name="name"
-                            value={editFormData.name}
+                            name="address"
+                            value={editFormData.address}
                             onChange={handleEditInputChange}
                             className="form-input"
-                            required
                           />
                         </div>
+                      </div>
+                      
+                      <div className="info-section kp-info">
+                        <div className="section-header">KP情報</div>
                         <div className="form-group">
-                          <label className="form-label">年齢 *</label>
+                          <label className="form-label">KP</label>
                           <input
-                            type="number"
-                            name="age"
-                            value={editFormData.age}
+                            type="text"
+                            name="kp"
+                            value={editFormData.kp}
                             onChange={handleEditInputChange}
                             className="form-input"
-                            min="0"
-                            max="120"
-                            required
                           />
                         </div>
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">要介護度 *</label>
-                        <select
-                          name="careLevel"
-                          value={editFormData.careLevel}
-                          onChange={handleEditInputChange}
-                          className="form-input"
-                          required
-                        >
-                          <option value="">選択してください</option>
-                          <option value="要支援1">要支援1</option>
-                          <option value="要支援2">要支援2</option>
-                          <option value="要介護1">要介護1</option>
-                          <option value="要介護2">要介護2</option>
-                          <option value="要介護3">要介護3</option>
-                          <option value="要介護4">要介護4</option>
-                          <option value="要介護5">要介護5</option>
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">住所</label>
-                        <input
-                          type="text"
-                          name="address"
-                          value={editFormData.address}
-                          onChange={handleEditInputChange}
-                          className="form-input"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">KP（キーパーソン）</label>
-                        <input
-                          type="text"
-                          name="kp"
-                          value={editFormData.kp}
-                          onChange={handleEditInputChange}
-                          className="form-input"
-                        />
-                      </div>
-                      <div className="form-row">
                         <div className="form-group">
                           <label className="form-label">KP年齢</label>
                           <input

@@ -116,13 +116,16 @@
             color: white;
             border: none;
             border-radius: 4px;
-            padding: 4px 8px;
+            padding: 6px 12px;
             cursor: pointer;
             font-size: 12px;
-            margin-left: 8px;
         }
         .delete-btn:hover {
             background: #dc2626;
+        }
+        .action-column {
+            width: 80px;
+            text-align: center;
         }
         .status-badge {
             display: inline-block;
@@ -288,8 +291,8 @@
             position: absolute;
             left: 50%;
             bottom: 0;
-            height: 50%;
-            width: 3px;
+            height: 100%;
+            width: 5px;
             background: #fdfcf8;
             transform: translateX(-50%);
             z-index: 2;
@@ -316,6 +319,11 @@
         }
         .action-flow .action-btn:last-child:not(:only-child)::after {
             display: none;
+        }
+        .action-flow .action-btn:last-child {
+            background: #8b7859 !important;
+            z-index: 15;
+            box-shadow: 0 0 0 3px #fdfcf8;
         }
         @keyframes flowPulse {
             0%, 100% {
@@ -791,7 +799,8 @@
           };
 
           const handleEditBasicInfo = () => {
-            console.log('基本情報編集ボタンがクリックされました');
+            console.log('基本情報編集ボタンがクリックされました', selectedApplicant);
+            console.log('現在のshowEditModal状態:', showEditModal);
             setEditFormData({
               name: selectedApplicant.name,
               age: selectedApplicant.age,
@@ -802,7 +811,11 @@
               kpAddress: selectedApplicant.kpAddress || ''
             });
             setShowEditModal(true);
-            console.log('基本情報編集モーダルを表示しました');
+            console.log('基本情報編集モーダルを表示しました - 新しい状態:', true);
+            // 強制的にモーダルを表示するため、少し遅延を追加
+            setTimeout(() => {
+              console.log('遅延後のshowEditModal状態:', showEditModal);
+            }, 100);
           };
 
           const handleSaveEdit = (e) => {
@@ -1258,6 +1271,9 @@
                           担当CM
                           <span className="sort-icon">{getSortIcon('careManager')}</span>
                         </th>
+                        <th className="action-column">
+                          操作
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1282,6 +1298,8 @@
                           </td>
                           <td style={{fontWeight: '500', color: '#4a3f2a'}}>
                             {applicant.careManager}
+                          </td>
+                          <td className="action-column">
                             <button 
                               className="delete-btn"
                               onClick={(e) => handleDelete(e, applicant.id)}
@@ -1413,7 +1431,7 @@
                 </div>
               )}
               
-              {showEditModal && (
+              {showEditModal && selectedApplicant && (
                 <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
                   <div className="modal-content edit-info-modal" onClick={(e) => e.stopPropagation()}>
                     <div className="modal-header">

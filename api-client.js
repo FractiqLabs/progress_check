@@ -236,6 +236,9 @@ class APIClient {
 
   async updateApplicant(id, data) {
     try {
+      // 既存のデータを取得してtimelineを保持
+      const existingApplicant = await this.getApplicant(id);
+      
       const updateData = {
         name: `${data.surname}　${data.givenName}`,
         surname: data.surname,
@@ -251,7 +254,11 @@ class APIClient {
         careManagerName: data.careManagerName || '',
         cmContact: data.cmContact || '',
         assignee: data.assignee || '担当者未定',
-        notes: data.notes || ''
+        notes: data.notes || '',
+        // 既存のtimelineと他の重要なフィールドを保持
+        timeline: existingApplicant?.timeline || [],
+        status: existingApplicant?.status || '申込書受領',
+        applicationDate: existingApplicant?.applicationDate || new Date().toISOString().split('T')[0]
       };
 
       await this.updateFirestoreDocument('applicants', id, updateData);

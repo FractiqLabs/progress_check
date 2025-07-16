@@ -5,9 +5,28 @@ import { useEffect, useState } from 'react';
 export default function Home() {
   const [username, setUsername] = useState<string | null>(null);
 
+  // 安全なデコーディング関数
+  const safeDecode = (str: string): string => {
+    try {
+      // URLデコーディングを使用
+      return decodeURIComponent(str);
+    } catch (error) {
+      console.warn('Decoding failed, using original string:', error);
+      return str;
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setUsername(localStorage.getItem('username'));
+      const storedUsername = localStorage.getItem('username');
+      const encodedUsername = localStorage.getItem('username_encoded');
+      
+      if (storedUsername) {
+        setUsername(storedUsername);
+      } else if (encodedUsername) {
+        // エンコードされた文字列がある場合はデコード
+        setUsername(safeDecode(encodedUsername));
+      }
     }
   }, []);
 

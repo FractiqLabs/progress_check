@@ -9,25 +9,44 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  // 安全なエンコーディング関数（btoaを使わない）
+  const safeEncode = (str: string): string => {
+    try {
+      // URLエンコーディングを使用（日本語文字に安全）
+      return encodeURIComponent(str);
+    } catch (error) {
+      console.warn('Encoding failed, using original string:', error);
+      return str;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const res = await fetch('/api/auth', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      localStorage.setItem('username', data.username);
-      router.push('/');
-    } else {
-      const errorData = await res.json();
-      setError(errorData.message || 'ログインに失敗しました');
+      if (res.ok) {
+        const data = await res.json();
+        // 日本語文字を安全に保存
+        const safeUsername = safeEncode(data.username);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('username_encoded', safeUsername);
+        router.push('/');
+      } else {
+        const errorData = await res.json();
+        setError(errorData.message || 'ログインに失敗しました');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('ログインに失敗しました');
     }
   };
 

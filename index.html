@@ -2092,6 +2092,10 @@
                           ステータス
                           <span className="sort-icon">{getSortIcon('status')}</span>
                         </th>
+                        <th onClick={() => handleSort('kp')}>
+                          KP
+                          <span className="sort-icon">{getSortIcon('kp')}</span>
+                        </th>
                         <th onClick={() => handleSort('assignee')}>
                           担当CM
                           <span className="sort-icon">{getSortIcon('assignee')}</span>
@@ -2116,6 +2120,9 @@
                             <span className={`status-badge ${getStatusColor(applicant.status, applicant.applicationDate)}`}>
                               {applicant.status}
                             </span>
+                          </td>
+                          <td style={{fontWeight: '500', color: '#495057'}}>
+                            {applicant.kp}{applicant.kpRelationship && `（${applicant.kpRelationship}）`}
                           </td>
                           <td style={{fontWeight: '500', color: '#495057'}}>{applicant.assignee}</td>
                           <td onClick={(e) => e.stopPropagation()}>

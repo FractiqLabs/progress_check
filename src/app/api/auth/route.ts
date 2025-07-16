@@ -20,19 +20,19 @@ function safeBase64Encode(str: string): string {
 }
 
 export async function POST(request: Request) {
-  const { username, password } = await request.json();
+  const { userId, username, password } = await request.json();
 
-  const user = users.find(u => u.id === username && u.password === password);
+  // ユーザーIDとパスワードで認証
+  const user = users.find(u => u.id === userId && u.password === password);
 
   if (user) {
-    // 日本語文字を安全にエンコードして返す
-    const safeUsername = safeBase64Encode(user.name);
+    // 認証成功 - 入力された日本語名をそのまま返す
     return NextResponse.json({ 
       message: 'ログイン成功', 
-      username: user.name,
-      encodedUsername: safeUsername
+      username: username, // 入力された日本語名
+      userId: userId
     });
   } else {
-    return NextResponse.json({ message: '無効なログインIDまたはパスワードです' }, { status: 401 });
+    return NextResponse.json({ message: '無効なユーザーIDまたはパスワードです' }, { status: 401 });
   }
 }

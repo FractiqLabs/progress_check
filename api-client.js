@@ -85,14 +85,15 @@ class APIClient {
       await this.initializeFirestore();
     }
     
-    const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    const { doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
     
     try {
       const docRef = doc(this.db, collectionName, docId);
-      await updateDoc(docRef, {
+      // setDocのmergeオプションで部分更新を確実に行う
+      await setDoc(docRef, {
         ...data,
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
       
       return { id: docId, ...data };
     } catch (error) {
@@ -195,11 +196,31 @@ class APIClient {
 
   async getApplicant(id) {
     try {
-      const applicants = await this.getApplicants();
-      return applicants.find(app => app.id === id);
+      if (!this.db) {
+        await this.initializeFirestore();
+      }
+      
+      const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+      
+      const docRef = doc(this.db, 'applicants', id);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() };
+      } else {
+        console.log('No such document!');
+        return null;
+      }
     } catch (error) {
       console.error('Failed to get applicant:', error);
-      return null;
+      // フォールバック：全データから検索
+      try {
+        const applicants = await this.getApplicants();
+        return applicants.find(app => app.id === id);
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+        return null;
+      }
     }
   }
 
@@ -236,9 +257,7 @@ class APIClient {
 
   async updateApplicant(id, data) {
     try {
-      // 既存のデータを取得してtimelineを保持
-      const existingApplicant = await this.getApplicant(id);
-      
+      // 更新対象の基本フィールドのみを送信（timelineは触らない）
       const updateData = {
         name: `${data.surname}　${data.givenName}`,
         surname: data.surname,
@@ -254,13 +273,10 @@ class APIClient {
         careManagerName: data.careManagerName || '',
         cmContact: data.cmContact || '',
         assignee: data.assignee || '担当者未定',
-        notes: data.notes || '',
-        // 既存のtimelineと他の重要なフィールドを保持
-        timeline: existingApplicant?.timeline || [],
-        status: existingApplicant?.status || '申込書受領',
-        applicationDate: existingApplicant?.applicationDate || new Date().toISOString().split('T')[0]
+        notes: data.notes || ''
       };
 
+      // setDocのmerge:trueにより、timelineや他の既存フィールドは自動的に保持される
       await this.updateFirestoreDocument('applicants', id, updateData);
       return { message: '申込者情報が更新されました' };
     } catch (error) {

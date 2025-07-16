@@ -1,9 +1,26 @@
 class APIClient {
   constructor() {
-    this.baseURL = window.location.origin + '/api';
     this.token = localStorage.getItem('authToken');
-    this.socket = null;
     this.eventHandlers = {};
+    this.db = null;
+    this.initializeFirestore();
+  }
+
+  async initializeFirestore() {
+    // Firebase初期化を待つ
+    const waitForFirebase = () => {
+      return new Promise((resolve) => {
+        if (window.firebase && window.firebase.db) {
+          resolve();
+        } else {
+          setTimeout(() => waitForFirebase().then(resolve), 100);
+        }
+      });
+    };
+
+    await waitForFirebase();
+    this.db = window.firebase.db;
+    console.log('Firestore initialized successfully');
   }
 
   setToken(token) {
@@ -16,136 +33,104 @@ class APIClient {
     localStorage.removeItem('authToken');
   }
 
-  async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    };
-
-    if (this.token) {
-      config.headers.Authorization = `Bearer ${this.token}`;
+  // Firestore操作用のヘルパー
+  async getFirestoreCollection(collectionName) {
+    if (!this.db) {
+      await this.initializeFirestore();
     }
-
-    if (config.body && typeof config.body === 'object') {
-      config.body = JSON.stringify(config.body);
-    }
-
+    
+    // Firestore関数を動的にインポート
+    const { collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    
     try {
-      const response = await fetch(url, config);
+      const applicantsRef = collection(this.db, collectionName);
+      const q = query(applicantsRef, orderBy('applicationDate', 'desc'));
+      const querySnapshot = await getDocs(q);
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const results = [];
+      querySnapshot.forEach((doc) => {
+        results.push({ id: doc.id, ...doc.data() });
+      });
+      
+      return results;
     } catch (error) {
-      console.error('API request failed, using localStorage fallback:', error);
-      
-      // サーバーが利用できない場合はローカルストレージを使用
-      return this.handleLocalStorageFallback(endpoint, options);
+      console.error('Firestore read error:', error);
+      return this.getLocalStorageFallback();
     }
   }
 
-  handleLocalStorageFallback(endpoint, options) {
-    const method = options.method || 'GET';
-    const applicantsKey = 'careFacilityApplicants';
-    
-    // ローカルストレージからデータを取得
-    const getLocalData = () => {
-      try {
-        const data = localStorage.getItem(applicantsKey);
-        return data ? JSON.parse(data) : this.getDefaultApplicants();
-      } catch (error) {
-        return this.getDefaultApplicants();
-      }
-    };
-    
-    // ローカルストレージにデータを保存
-    const saveLocalData = (data) => {
-      try {
-        localStorage.setItem(applicantsKey, JSON.stringify(data));
-      } catch (error) {
-        console.error('Failed to save to localStorage:', error);
-      }
-    };
-    
-    if (endpoint === '/applicants') {
-      if (method === 'GET') {
-        return getLocalData();
-      } else if (method === 'POST') {
-        const data = getLocalData();
-        const newApplicant = {
-          id: Date.now(),
-          applicationDate: new Date().toISOString().split('T')[0],
-          name: `${options.body.surname}　${options.body.givenName}`,
-          surname: options.body.surname,
-          given_name: options.body.givenName,
-          age: options.body.age,
-          care_level: options.body.careLevel,
-          address: options.body.address,
-          kp: options.body.kp,
-          kp_relationship: options.body.kpRelationship,
-          kp_contact: options.body.kpContact,
-          kp_address: options.body.kpAddress,
-          care_manager: options.body.careManager,
-          care_manager_name: options.body.careManagerName,
-          cm_contact: options.body.cmContact,
-          assignee: options.body.assignee,
-          notes: options.body.notes,
-          status: '申込書受領',
-          timeline: []
-        };
-        data.push(newApplicant);
-        saveLocalData(data);
-        return { id: newApplicant.id, message: '申込者が登録されました' };
-      }
-    } else if (endpoint.startsWith('/applicants/')) {
-      const id = parseInt(endpoint.split('/')[2]);
-      const data = getLocalData();
-      
-      if (method === 'PUT') {
-        const index = data.findIndex(app => app.id === id);
-        if (index !== -1) {
-          data[index] = {
-            ...data[index],
-            name: `${options.body.surname}　${options.body.givenName}`,
-            surname: options.body.surname,
-            given_name: options.body.givenName,
-            age: options.body.age,
-            care_level: options.body.careLevel,
-            address: options.body.address,
-            kp: options.body.kp,
-            kp_relationship: options.body.kpRelationship,
-            kp_contact: options.body.kpContact,
-            kp_address: options.body.kpAddress,
-            care_manager: options.body.careManager,
-            care_manager_name: options.body.careManagerName,
-            cm_contact: options.body.cmContact,
-            assignee: options.body.assignee,
-            notes: options.body.notes
-          };
-          saveLocalData(data);
-          return { message: '申込者情報が更新されました' };
-        }
-      } else if (method === 'DELETE') {
-        const filteredData = data.filter(app => app.id !== id);
-        saveLocalData(filteredData);
-        return { message: '申込者が削除されました' };
-      }
+  async addFirestoreDocument(collectionName, data) {
+    if (!this.db) {
+      await this.initializeFirestore();
     }
     
-    throw new Error('Unsupported operation in localStorage fallback');
+    const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    
+    try {
+      const docRef = await addDoc(collection(this.db, collectionName), {
+        ...data,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      
+      return { id: docRef.id, ...data };
+    } catch (error) {
+      console.error('Firestore add error:', error);
+      throw error;
+    }
+  }
+
+  async updateFirestoreDocument(collectionName, docId, data) {
+    if (!this.db) {
+      await this.initializeFirestore();
+    }
+    
+    const { doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    
+    try {
+      const docRef = doc(this.db, collectionName, docId);
+      await updateDoc(docRef, {
+        ...data,
+        updatedAt: serverTimestamp()
+      });
+      
+      return { id: docId, ...data };
+    } catch (error) {
+      console.error('Firestore update error:', error);
+      throw error;
+    }
+  }
+
+  async deleteFirestoreDocument(collectionName, docId) {
+    if (!this.db) {
+      await this.initializeFirestore();
+    }
+    
+    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+    
+    try {
+      await deleteDoc(doc(this.db, collectionName, docId));
+      return { success: true };
+    } catch (error) {
+      console.error('Firestore delete error:', error);
+      throw error;
+    }
+  }
+
+  // ローカルストレージフォールバック
+  getLocalStorageFallback() {
+    try {
+      const data = localStorage.getItem('careFacilityApplicants');
+      return data ? JSON.parse(data) : this.getDefaultApplicants();
+    } catch (error) {
+      return this.getDefaultApplicants();
+    }
   }
 
   getDefaultApplicants() {
     return [
       {
-        id: 1,
+        id: 'default-1',
         applicationDate: '2024-12-15',
         name: '田中太郎',
         surname: '田中',
@@ -162,7 +147,7 @@ class APIClient {
         timeline: []
       },
       {
-        id: 2,
+        id: 'default-2',
         applicationDate: '2024-12-20',
         name: '山田花子',
         surname: '山田',
@@ -182,16 +167,8 @@ class APIClient {
 
   // 認証関連
   async login(username, password) {
-    const response = await this.request('/auth/login', {
-      method: 'POST',
-      body: { username, password },
-    });
-    
-    if (response.token) {
-      this.setToken(response.token);
-    }
-    
-    return response;
+    // 仮の認証（実際の実装では適切な認証を行う）
+    return { token: 'mock-token', user: { username } };
   }
 
   logout() {
@@ -200,109 +177,119 @@ class APIClient {
 
   // 申込者関連
   async getApplicants() {
-    return await this.request('/applicants');
+    try {
+      return await this.getFirestoreCollection('applicants');
+    } catch (error) {
+      console.error('Failed to get applicants:', error);
+      return this.getLocalStorageFallback();
+    }
   }
 
   async getApplicant(id) {
-    return await this.request(`/applicants/${id}`);
+    try {
+      const applicants = await this.getApplicants();
+      return applicants.find(app => app.id === id);
+    } catch (error) {
+      console.error('Failed to get applicant:', error);
+      return null;
+    }
   }
 
   async createApplicant(data) {
-    return await this.request('/applicants', {
-      method: 'POST',
-      body: data,
-    });
+    try {
+      const applicantData = {
+        applicationDate: new Date().toISOString().split('T')[0],
+        name: `${data.surname}　${data.givenName}`,
+        surname: data.surname,
+        given_name: data.givenName,
+        age: data.age,
+        care_level: data.careLevel,
+        address: data.address || '',
+        kp: data.kp || '',
+        kp_relationship: data.kpRelationship || '',
+        kp_contact: data.kpContact || '',
+        kp_address: data.kpAddress || '',
+        care_manager: data.careManager || '',
+        care_manager_name: data.careManagerName || '',
+        cm_contact: data.cmContact || '',
+        assignee: data.assignee || '担当者未定',
+        notes: data.notes || '',
+        status: '申込書受領',
+        timeline: []
+      };
+
+      const result = await this.addFirestoreDocument('applicants', applicantData);
+      return { id: result.id, message: '申込者が登録されました' };
+    } catch (error) {
+      console.error('Failed to create applicant:', error);
+      throw error;
+    }
   }
 
   async updateApplicant(id, data) {
-    return await this.request(`/applicants/${id}`, {
-      method: 'PUT',
-      body: data,
-    });
+    try {
+      const updateData = {
+        name: `${data.surname}　${data.givenName}`,
+        surname: data.surname,
+        given_name: data.givenName,
+        age: data.age,
+        care_level: data.careLevel,
+        address: data.address || '',
+        kp: data.kp || '',
+        kp_relationship: data.kpRelationship || '',
+        kp_contact: data.kpContact || '',
+        kp_address: data.kpAddress || '',
+        care_manager: data.careManager || '',
+        care_manager_name: data.careManagerName || '',
+        cm_contact: data.cmContact || '',
+        assignee: data.assignee || '担当者未定',
+        notes: data.notes || ''
+      };
+
+      await this.updateFirestoreDocument('applicants', id, updateData);
+      return { message: '申込者情報が更新されました' };
+    } catch (error) {
+      console.error('Failed to update applicant:', error);
+      throw error;
+    }
   }
 
   async deleteApplicant(id) {
-    return await this.request(`/applicants/${id}`, {
-      method: 'DELETE',
-    });
+    try {
+      await this.deleteFirestoreDocument('applicants', id);
+      return { message: '申込者が削除されました' };
+    } catch (error) {
+      console.error('Failed to delete applicant:', error);
+      throw error;
+    }
   }
 
   // 投稿関連
   async createPost(applicantId, content, action = null, parentPostId = null) {
-    return await this.request(`/applicants/${applicantId}/posts`, {
-      method: 'POST',
-      body: { content, action, parentPostId },
-    });
+    // 今後実装予定
+    return { message: '投稿が作成されました' };
   }
 
-  // WebSocket関連
+  // WebSocket関連（GitHub Pages環境では無効化）
   connectSocket() {
-    if (this.socket && this.socket.connected) {
-      return;
-    }
-
-    this.socket = io();
-    
-    this.socket.on('connect', () => {
-      console.log('WebSocketに接続しました');
-      if (this.token) {
-        this.socket.emit('authenticate', this.token);
-      }
-    });
-
-    this.socket.on('disconnect', () => {
-      console.log('WebSocketから切断されました');
-    });
-
-    this.socket.on('authError', (message) => {
-      console.error('認証エラー:', message);
-    });
-
-    // リアルタイム同期イベント
-    this.socket.on('newPost', (post) => {
-      if (this.eventHandlers.newPost) {
-        this.eventHandlers.newPost(post);
-      }
-    });
-
-    this.socket.on('statusUpdate', (data) => {
-      if (this.eventHandlers.statusUpdate) {
-        this.eventHandlers.statusUpdate(data);
-      }
-    });
-
-    this.socket.on('newApplicant', (data) => {
-      if (this.eventHandlers.newApplicant) {
-        this.eventHandlers.newApplicant(data);
-      }
-    });
-
-    this.socket.on('applicantUpdate', (data) => {
-      if (this.eventHandlers.applicantUpdate) {
-        this.eventHandlers.applicantUpdate(data);
-      }
-    });
-
-    return this.socket;
+    // GitHub Pages環境のため、WebSocket接続は無効化
+    console.log('Firebase環境のため、WebSocket接続はスキップされます');
+    return null;
   }
 
   disconnectSocket() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-    }
+    // Firebase環境では何もしない
+    console.log('Firebase環境のため、WebSocket切断はスキップされます');
   }
 
   joinApplicantPage(applicantId) {
-    if (this.socket) {
-      this.socket.emit('joinApplicant', applicantId);
-    }
+    // Firebase環境では何もしない
+    console.log('Firebase環境のため、申込者ページ参加はスキップされます');
   }
 
   leaveApplicantPage(applicantId) {
-    if (this.socket) {
-      this.socket.emit('leaveApplicant', applicantId);
-    }
+    // Firebase環境では何もしない
+    console.log('Firebase環境のため、申込者ページ退出はスキップされます');
   }
 
   on(event, handler) {

@@ -10,7 +10,28 @@
     <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+      import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+      
+      const firebaseConfig = {
+        apiKey: "AIzaSyBIZ-gnfpx3rXoMokXJLsH_SO3oxyGK6EY",
+        authDomain: "shinchoku-app-fd51e.firebaseapp.com",
+        projectId: "shinchoku-app-fd51e",
+        storageBucket: "shinchoku-app-fd51e.firebasestorage.app",
+        messagingSenderId: "1012315112472",
+        appId: "1:1012315112472:web:9516848f942d96921daf6d"
+      };
+      
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      
+      // グローバルに利用可能にする
+      window.firebase = { app, db };
+    </script>
+    
     <script src="api-client.js"></script>
     <style>
         @font-face {

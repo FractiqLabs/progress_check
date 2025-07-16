@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンチョク. | 特養入居進捗管理アプリ</title>
+    <style>
+        @font-face {
+            font-family: 'kirin-Regular';
+            src: url('../fonts/kirin-Regular.ttf') format('truetype');
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #1a1a1a;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 32px;
+            text-align: center;
+        }
+        
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-family: 'kirin-Regular', sans-serif;
+            font-size: 48px;
+            font-weight: normal;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #6c757d;
+            margin-bottom: 32px;
+            font-weight: 400;
+        }
+        
+        .description {
+            font-size: 16px;
+            color: #495057;
+            line-height: 1.7;
+            margin-bottom: 40px;
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin-bottom: 40px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 15px;
+            color: #495057;
+        }
+        
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .deploy-section {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .deploy-title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .deploy-option {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        
+        .deploy-option h4 {
+            color: #007bff;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .deploy-option p {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .deploy-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .deploy-link:hover {
+            background: #0056b3;
+        }
+        
+        .deploy-link.secondary {
+            background: #6c757d;
+        }
+        
+        .deploy-link.secondary:hover {
+            background: #545b62;
+        }
+        
+        .footer-links {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer-links a {
+            color: #6c757d;
+            text-decoration: none;
+            margin: 0 16px;
+            font-size: 14px;
+        }
+        
+        .footer-links a:hover {
+            color: #007bff;
+        }
+        
+        .github-link {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 12px 24px;
+            background: #24292e;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .github-link:hover {
+            background: #1b1f23;
+        }
+        
+        .copyright {
+            margin-top: 24px;
+            color: #adb5bd;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-card">
+            <h1 class="logo">シンチョク.</h1>
+            <p class="subtitle">特別養護老人ホーム入居進捗管理システム</p>
+            
+            <div class="description">
+                特養入居申込者の進捗状況をリアルタイムで管理・共有できるWebアプリケーションです。
+                スタッフ間の情報共有を効率化し、入居手続きを円滑に進めることができます。
+            </div>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <span>申込者情報の一元管理</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <span>進捗状況のリアルタイム更新</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <span>タイムライン形式での記録管理</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <span>複数デバイス間でのデータ同期</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <span>セキュアな認証システム</span>
+                </div>
+            </div>
+            
+            <div class="deploy-section">
+                <h3 class="deploy-title">🚀 デプロイ方法</h3>
+                
+                <div class="deploy-option">
+                    <h4>🌐 Railway (推奨)</h4>
+                    <p>最も簡単で無料から始められるクラウドデプロイ</p>
+                    <a href="https://railway.app/template/shinchoku" class="deploy-link">Railwayでデプロイ</a>
+                </div>
+                
+                <div class="deploy-option">
+                    <h4>🟣 Heroku</h4>
+                    <p>実績豊富なPaaSサービス</p>
+                    <a href="https://heroku.com/deploy?template=https://github.com/FractiqLabs/Shinchoku" class="deploy-link">Herokuでデプロイ</a>
+                </div>
+                
+                <div class="deploy-option">
+                    <h4>🐳 Docker</h4>
+                    <p>自前サーバーやVPSでの運用</p>
+                    <a href="https://github.com/FractiqLabs/Shinchoku/blob/main/README-deployment.md" class="deploy-link secondary">デプロイガイド</a>
+                </div>
+                
+                <div class="deploy-option">
+                    <h4>💻 ローカル開発</h4>
+                    <p>開発・テスト用の環境構築</p>
+                    <a href="https://github.com/FractiqLabs/Shinchoku#%E3%83%AD%E3%83%BC%E3%82%AB%E3%83%AB%E9%96%8B%E7%99%BA%E7%92%B0%E5%A2%83" class="deploy-link secondary">セットアップ手順</a>
+                </div>
+            </div>
+            
+            <a href="https://github.com/FractiqLabs/Shinchoku" class="github-link" target="_blank">
+                📋 GitHub でソースコードを見る
+            </a>
+            
+            <div class="footer-links">
+                <a href="disclaimer.html">免責事項</a>
+                <a href="privacy.html">プライバシーポリシー</a>
+                <a href="credits.html">著作権・クレジット</a>
+            </div>
+            
+            <div class="copyright">
+                © 2024 FractiqLabs. All rights reserved.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

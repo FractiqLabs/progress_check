@@ -389,7 +389,7 @@
             padding: 20px 24px;
             border-bottom: 1px solid #e9ecef;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
         }
         
@@ -535,7 +535,7 @@
             padding: 20px 24px;
             border-bottom: 1px solid #e9ecef;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
         }
         
@@ -1876,7 +1876,6 @@
                 <div className="grid-layout">
                   <div className="timeline-panel">
                     <div className="timeline-header">
-                      <h2 className="section-title">タイムライン</h2>
                       <button onClick={handleFreePost} className="btn btn-primary">
                         投稿
                       </button>
@@ -1986,7 +1985,6 @@
 
                   <div className="actions-panel">
                     <div className="actions-header">
-                      <h2 className="section-title">アクション</h2>
                       <button
                         onClick={() => setShowActions(!showActions)}
                         className="btn btn-ghost"

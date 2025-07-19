@@ -149,7 +149,28 @@ class APIClient {
         careManagerName: '山田太郎',
         cmContact: '048-123-4567',
         notes: '夜間のトイレ介助が必要。家族の協力体制は良好。',
-        timeline: []
+        timeline: [
+          {
+            id: '1',
+            author: '藤堂　友未枝',
+            content: '申込書を受領しました。',
+            action: '申込書受領',
+            parentPostId: null,
+            createdAt: '2024-12-15T10:00:00Z',
+            timestamp: '2024-12-15 10:00',
+            replies: []
+          },
+          {
+            id: '2',
+            author: '藤堂　友未枝',
+            content: '実地調査を完了しました。入居に向けて検討を進めます。',
+            action: '実調完了',
+            parentPostId: null,
+            createdAt: '2024-12-18T14:30:00Z',
+            timestamp: '2024-12-18 14:30',
+            replies: []
+          }
+        ]
       },
       {
         id: 'default-2',
@@ -169,7 +190,18 @@ class APIClient {
         careManager: '佐藤ケアマネ',
         careManagerName: '佐藤花子',
         cmContact: '048-987-6543',
-        timeline: []
+        timeline: [
+          {
+            id: '3',
+            author: '吉野　隼人',
+            content: '申込書を受領いたしました。内容を確認して次のステップに進みます。',
+            action: '申込書受領',
+            parentPostId: null,
+            createdAt: '2024-12-20T09:15:00Z',
+            timestamp: '2024-12-20 09:15',
+            replies: []
+          }
+        ]
       }
     ];
   }
@@ -297,8 +329,101 @@ class APIClient {
 
   // 投稿関連
   async createPost(applicantId, content, action = null, parentPostId = null) {
-    // 今後実装予定
-    return { message: '投稿が作成されました' };
+    try {
+      if (!this.db) {
+        await this.initializeFirestore();
+      }
+
+      // 現在のユーザー名を取得
+      let authorName = 'ローカルユーザー';
+      try {
+        if (this.token) {
+          const payload = JSON.parse(atob(this.token.split('.')[1]));
+          authorName = payload.name || payload.username || 'ローカルユーザー';
+        }
+      } catch (error) {
+        console.warn('Failed to parse token for author name:', error);
+      }
+
+      const { doc, getDoc, updateDoc, arrayUnion, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+      // 新しい投稿オブジェクトを作成
+      const newPost = {
+        id: Date.now().toString(),
+        author: authorName,
+        content,
+        action,
+        parentPostId: parentPostId || null,
+        createdAt: new Date().toISOString(),
+        timestamp: new Date().toLocaleString('ja-JP'),
+        replies: []
+      };
+
+      // 申込者のドキュメントを取得
+      const applicantRef = doc(this.db, 'applicants', applicantId);
+      const applicantSnap = await getDoc(applicantRef);
+
+      if (!applicantSnap.exists()) {
+        throw new Error('申込者が見つかりません');
+      }
+
+      const applicantData = applicantSnap.data();
+      let timeline = applicantData.timeline || [];
+
+      if (parentPostId) {
+        // 返信の場合：親投稿にreplyを追加
+        timeline = timeline.map(post => {
+          if (post.id === parentPostId) {
+            return {
+              ...post,
+              replies: [...(post.replies || []), newPost]
+            };
+          }
+          return post;
+        });
+      } else {
+        // 新規投稿の場合：タイムラインの先頭に追加
+        timeline = [newPost, ...timeline];
+      }
+
+      // ステータス更新が必要な場合のロジック
+      let updateData = { 
+        timeline,
+        updatedAt: serverTimestamp()
+      };
+
+      if (action && !parentPostId) {
+        const statusMapping = {
+          '申込書受領': '申込書受領',
+          '実調日程調整中': '実調日程調整中',
+          '実調完了': '実調完了',
+          '健康診断書依頼': '健康診断書待ち',
+          '健康診断書受領': '健康診断書受領',
+          '判定会議中': '判定会議中',
+          '入居決定': '入居決定',
+          '入居日調整中': '入居日調整中',
+          '書類送付済': '書類送付済',
+          '入居準備完了': '入居準備完了',
+          '入居完了': '入居完了'
+        };
+
+        if (statusMapping[action]) {
+          updateData.status = statusMapping[action];
+        }
+      }
+
+      // Firestoreドキュメントを更新
+      await updateDoc(applicantRef, updateData);
+
+      return {
+        id: newPost.id,
+        message: '投稿が作成されました',
+        post: newPost
+      };
+    } catch (error) {
+      console.error('Failed to create post:', error);
+      throw error;
+    }
   }
 
   // WebSocket関連（GitHub Pages環境では無効化）

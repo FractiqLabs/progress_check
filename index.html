@@ -1694,87 +1694,19 @@
             if (!newPost.trim()) return;
             
             try {
-              const currentApplicant = await apiClient.getApplicant(selectedApplicant.id);
-              if (!currentApplicant) {
-                console.error('Applicant not found');
-                return;
-              }
+              // 新しいAPIClient.createPostメソッドを使用
+              await apiClient.createPost(
+                selectedApplicant.id,
+                newPost,
+                postType || null,
+                replyTo
+              );
               
-              let updatedTimeline;
-              let newStatus = currentApplicant.status;
+              // 投稿成功後、最新の申込者詳細を再読み込み
+              await loadApplicantDetail(selectedApplicant.id);
+              await loadApplicants(); // 一覧のステータスも更新
               
-              if (replyTo) {
-                // 返信の場合
-                updatedTimeline = currentApplicant.timeline.map(post => {
-                  if (post.id === replyTo) {
-                    return {
-                      ...post,
-                      replies: [...(post.replies || []), {
-                        id: Date.now(),
-                        author: currentUser.name,
-                        timestamp: new Date().toISOString(),
-                        content: newPost
-                      }]
-                    };
-                  }
-                  return post;
-                });
-              } else {
-                // 新規投稿の場合
-                const newTimelineItem = {
-                  id: Date.now(),
-                  author: currentUser.name,
-                  timestamp: new Date().toISOString(),
-                  content: newPost,
-                  action: postType || null,
-                  replies: []
-                };
-                
-                // アクションに応じてステータスを更新
-                const statusMapping = {
-                  '申込書受領': '申込書受領',
-                  '実調日程調整中': '実調日程調整中',
-                  '実調完了': '実調完了',
-                  '健康診断書依頼': '健康診断書待ち',
-                  '健康診断書受領': '健康診断書受領',
-                  '判定会議中': '判定会議中',
-                  '入居決定': '入居決定',
-                  '入居日調整中': '入居日調整中',
-                  '書類送付済': '書類送付済',
-                  '入居準備完了': '入居準備完了',
-                  '入居完了': '入居完了'
-                };
-                
-                if (statusMapping[postType]) {
-                  newStatus = statusMapping[postType];
-                }
-                
-                updatedTimeline = [newTimelineItem, ...currentApplicant.timeline];
-              }
-              
-              // Firestoreに保存
-              await apiClient.updateFirestoreDocument('applicants', selectedApplicant.id, {
-                timeline: updatedTimeline,
-                status: newStatus
-              });
-              
-              // ローカル状態を更新
-              const updatedApplicants = applicants.map(app => {
-                if (app.id === selectedApplicant.id) {
-                  return {
-                    ...app,
-                    timeline: updatedTimeline,
-                    status: newStatus
-                  };
-                }
-                return app;
-              });
-              
-              setApplicants(updatedApplicants);
-              
-              const updatedSelected = updatedApplicants.find(app => app.id === selectedApplicant.id);
-              setSelectedApplicant(updatedSelected);
-              
+              // フォームをリセット
               setNewPost('');
               setShowPostForm(false);
               setPostType('');
@@ -1782,7 +1714,7 @@
               
             } catch (error) {
               console.error('Failed to submit post:', error);
-              alert('投稿に失敗しました。');
+              alert('投稿の送信に失敗しました。');
             }
           };
 

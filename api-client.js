@@ -138,7 +138,7 @@ class APIClient {
         given_name: '太郎',
         age: 85,
         careLevel: '要介護3',
-        status: '実調完了',
+        status: '入居日調整中',
         assignee: '藤堂　友未枝',
         address: '東京都新宿区1-1-1',
         kp: '田中花子（長女）',
@@ -168,6 +168,16 @@ class APIClient {
             parentPostId: null,
             createdAt: '2024-12-18T14:30:00Z',
             timestamp: '2024-12-18 14:30',
+            replies: []
+          },
+          {
+            id: '2-1',
+            author: '田中　慎治',
+            content: '入所判定会議をネッツにて開催する。',
+            action: '判定会議中',
+            parentPostId: null,
+            createdAt: '2024-12-19T10:00:00Z',
+            timestamp: '1日前',
             replies: []
           }
         ]
@@ -206,6 +216,44 @@ class APIClient {
     ];
   }
 
+  // タイムライン同期用ヘルパーメソッド
+  getLatestTimelineAction(timeline) {
+    if (!timeline || timeline.length === 0) {
+      return null;
+    }
+    
+    // タイムラインを作成日時順でソートし、最新のアクション投稿を取得
+    const actionPosts = timeline
+      .filter(post => post.action && post.action.trim() !== '')
+      .sort((a, b) => new Date(b.createdAt || b.timestamp) - new Date(a.createdAt || a.timestamp));
+    
+    return actionPosts.length > 0 ? actionPosts[0].action : null;
+  }
+
+  syncStatusWithTimeline(currentStatus, latestTimelineAction) {
+    if (!latestTimelineAction) {
+      return currentStatus;
+    }
+    
+    // アクションからステータスへのマッピング
+    const statusMapping = {
+      '申込書受領': '申込書受領',
+      '実調日程調整中': '実調日程調整中',
+      '実調完了': '実調完了',
+      '健康診断書依頼': '健康診断書待ち',
+      '健康診断書受領': '健康診断書受領',
+      '判定会議中': '判定会議中',
+      '入居決定': '入居決定',
+      '入居日調整中': '入居日調整中',
+      '書類送付済': '書類送付済',
+      '入居準備完了': '入居準備完了',
+      '入居完了': '入居完了'
+    };
+    
+    // 最新のタイムライン投稿のアクションに対応するステータスを返す
+    return statusMapping[latestTimelineAction] || currentStatus;
+  }
+
   // 認証関連
   async login(username, password) {
     // 仮の認証（実際の実装では適切な認証を行う）
@@ -219,10 +267,32 @@ class APIClient {
   // 申込者関連
   async getApplicants() {
     try {
-      return await this.getFirestoreCollection('applicants');
+      const applicants = await this.getFirestoreCollection('applicants');
+      
+      // 各申込者のステータスを最新のタイムライン投稿のアクションと同期
+      return applicants.map(applicant => {
+        const latestTimelineAction = this.getLatestTimelineAction(applicant.timeline);
+        const syncedStatus = this.syncStatusWithTimeline(applicant.status, latestTimelineAction);
+        
+        return {
+          ...applicant,
+          status: syncedStatus
+        };
+      });
     } catch (error) {
       console.error('Failed to get applicants:', error);
-      return this.getLocalStorageFallback();
+      const fallbackData = this.getLocalStorageFallback();
+      
+      // フォールバックデータでも同じ同期処理を適用
+      return fallbackData.map(applicant => {
+        const latestTimelineAction = this.getLatestTimelineAction(applicant.timeline);
+        const syncedStatus = this.syncStatusWithTimeline(applicant.status, latestTimelineAction);
+        
+        return {
+          ...applicant,
+          status: syncedStatus
+        };
+      });
     }
   }
 
@@ -238,7 +308,16 @@ class APIClient {
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() };
+        const applicant = { id: docSnap.id, ...docSnap.data() };
+        
+        // ステータスを最新のタイムライン投稿のアクションと同期
+        const latestTimelineAction = this.getLatestTimelineAction(applicant.timeline);
+        const syncedStatus = this.syncStatusWithTimeline(applicant.status, latestTimelineAction);
+        
+        return {
+          ...applicant,
+          status: syncedStatus
+        };
       } else {
         console.log('No such document!');
         return null;

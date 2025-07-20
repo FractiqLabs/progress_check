@@ -987,6 +987,7 @@
           const [showEditModal, setShowEditModal] = React.useState(false);
           const [showDeleteModal, setShowDeleteModal] = React.useState(false);
           const [editingApplicant, setEditingApplicant] = React.useState(null);
+          const [hoveredAction, setHoveredAction] = React.useState(null);
           const [deletingApplicant, setDeletingApplicant] = React.useState(null);
           const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
           const [applicants, setApplicants] = React.useState([]);
@@ -1721,8 +1722,8 @@
           if (currentView === 'detail' && selectedApplicant) {
             const allActions = [
               '申込書受領', '実調日程調整中', '実調完了', '健康診断書依頼',
-              '健康診断書受領', '判定会議中', '入居決定', '入居日調整中',
-              '書類送付済', '入居準備完了', '入居完了'
+              '健康診断書受領', '判定会議中', '入居可否', '入居日調整中',
+              '書類送付済', '入居準備完了', '入居完了', 'キャンセル'
             ];
 
             const completedActions = selectedApplicant.timeline
@@ -1931,19 +1932,78 @@
                         <div className="action-list">
                           {allActions.map((action, index) => {
                             const isCompleted = completedActions.includes(action);
+                            const isHovered = hoveredAction === action;
+                            const isSubMenuAction = action === '入居可否';
+                            const isCancelAction = action === 'キャンセル';
+                            
                             return (
-                              <button
-                                key={index}
-                                onClick={() => handleStatusUpdate(action)}
-                                disabled={isCompleted}
-                                className="action-item"
-                                style={{
-                                  backgroundColor: isCompleted ? '#f8f9fa' : '#ffffff',
-                                  color: isCompleted ? '#adb5bd' : '#495057'
-                                }}
-                              >
-                                {isCompleted ? '✓ ' : ''}{action}
-                              </button>
+                              <div key={index} style={{ position: 'relative' }}>
+                                <button
+                                  onClick={() => isSubMenuAction ? null : handleStatusUpdate(action)}
+                                  onMouseEnter={() => setHoveredAction(action)}
+                                  onMouseLeave={() => setHoveredAction(null)}
+                                  disabled={isCompleted}
+                                  className="action-item"
+                                  style={{
+                                    backgroundColor: isCompleted ? '#f8f9fa' : '#ffffff',
+                                    color: isCompleted ? '#adb5bd' : (isCancelAction ? '#dc3545' : '#495057'),
+                                    cursor: isSubMenuAction && !isCompleted ? 'pointer' : (isCompleted ? 'not-allowed' : 'pointer'),
+                                    borderColor: isCancelAction && !isCompleted ? '#dc3545' : '#dee2e6'
+                                  }}
+                                >
+                                  {isCompleted ? '✓ ' : ''}{action}
+                                  {isSubMenuAction && !isCompleted && (
+                                    <span style={{ marginLeft: '8px', fontSize: '12px' }}>▼</span>
+                                  )}
+                                </button>
+                                
+                                {isSubMenuAction && isHovered && !isCompleted && (
+                                  <div
+                                    style={{
+                                      position: 'absolute',
+                                      top: '100%',
+                                      left: '0',
+                                      right: '0',
+                                      backgroundColor: '#ffffff',
+                                      border: '1px solid #dee2e6',
+                                      borderRadius: '8px',
+                                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                                      zIndex: 1000,
+                                      marginTop: '4px'
+                                    }}
+                                  >
+                                    <button
+                                      onClick={() => handleStatusUpdate('入居決定')}
+                                      className="action-item"
+                                      style={{
+                                        width: '100%',
+                                        backgroundColor: '#ffffff',
+                                        color: '#495057',
+                                        border: 'none',
+                                        borderBottom: '1px solid #dee2e6',
+                                        borderRadius: '8px 8px 0 0',
+                                        margin: '0'
+                                      }}
+                                    >
+                                      入居決定
+                                    </button>
+                                    <button
+                                      onClick={() => handleStatusUpdate('入居不可')}
+                                      className="action-item"
+                                      style={{
+                                        width: '100%',
+                                        backgroundColor: '#ffffff',
+                                        color: '#495057',
+                                        border: 'none',
+                                        borderRadius: '0 0 8px 8px',
+                                        margin: '0'
+                                      }}
+                                    >
+                                      入居不可
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             );
                           })}
                         </div>

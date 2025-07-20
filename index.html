@@ -1031,6 +1031,8 @@
           const [showPostForm, setShowPostForm] = React.useState(false);
           const [postType, setPostType] = React.useState('');
           const [replyTo, setReplyTo] = React.useState(null);
+          const [inlineReplyTo, setInlineReplyTo] = React.useState(null);
+          const [inlineReplyContent, setInlineReplyContent] = React.useState('');
           const [likes, setLikes] = React.useState({});
           const [editingPostId, setEditingPostId] = React.useState(null);
           const [editingContent, setEditingContent] = React.useState('');
@@ -1504,9 +1506,55 @@
           };
 
           const handleReply = (postId) => {
-            setReplyTo(postId);
-            setShowPostForm(true);
-            setPostType('');
+            setInlineReplyTo(postId);
+            setInlineReplyContent('');
+          };
+
+          const submitInlineReply = async (postId) => {
+            if (!inlineReplyContent.trim()) return;
+            
+            try {
+              await apiClient.createPost(
+                selectedApplicant.id,
+                inlineReplyContent,
+                null,
+                postId
+              );
+              
+              // ローカル状態を即座に更新
+              const updatedTimeline = selectedApplicant.timeline.map(post => {
+                if (post.id === postId) {
+                  return {
+                    ...post,
+                    replies: [...(post.replies || []), {
+                      id: Date.now(),
+                      author: currentUser.name,
+                      timestamp: new Date().toISOString(),
+                      content: inlineReplyContent
+                    }]
+                  };
+                }
+                return post;
+              });
+
+              const updatedApplicants = applicants.map(app => {
+                if (app.id === selectedApplicant.id) {
+                  return { ...app, timeline: updatedTimeline };
+                }
+                return app;
+              });
+
+              setApplicants(updatedApplicants);
+              const updatedSelected = updatedApplicants.find(app => app.id === selectedApplicant.id);
+              setSelectedApplicant(updatedSelected);
+
+              setInlineReplyTo(null);
+              setInlineReplyContent('');
+              
+            } catch (error) {
+              console.error('Failed to send inline reply:', error);
+              alert('返信の送信に失敗しました。');
+            }
           };
 
           const handleFreePost = () => {
@@ -2043,6 +2091,70 @@
                               </button>
                             </div>
 
+                            {/* インライン返信フォーム */}
+                            {inlineReplyTo === item.id && (
+                              <div style={{
+                                marginTop: '12px',
+                                marginLeft: '20px',
+                                padding: '12px',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: '8px',
+                                border: '1px solid #dee2e6'
+                              }}>
+                                <div style={{fontSize: '14px', color: '#6c757d', marginBottom: '8px'}}>
+                                  {item.author}さんに返信
+                                </div>
+                                <textarea
+                                  value={inlineReplyContent}
+                                  onChange={(e) => setInlineReplyContent(e.target.value)}
+                                  placeholder="返信を入力してください..."
+                                  style={{
+                                    width: '100%',
+                                    minHeight: '60px',
+                                    padding: '8px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px',
+                                    resize: 'vertical',
+                                    fontSize: '14px'
+                                  }}
+                                />
+                                <div style={{
+                                  display: 'flex',
+                                  justifyContent: 'flex-end',
+                                  gap: '8px',
+                                  marginTop: '8px'
+                                }}>
+                                  <button 
+                                    onClick={() => setInlineReplyTo(null)}
+                                    style={{
+                                      padding: '6px 12px',
+                                      border: '1px solid #ccc',
+                                      borderRadius: '4px',
+                                      backgroundColor: 'white',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    キャンセル
+                                  </button>
+                                  <button 
+                                    onClick={() => submitInlineReply(item.id)}
+                                    disabled={!inlineReplyContent.trim()}
+                                    style={{
+                                      padding: '6px 12px',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      backgroundColor: '#007bff',
+                                      color: 'white',
+                                      cursor: inlineReplyContent.trim() ? 'pointer' : 'not-allowed',
+                                      opacity: inlineReplyContent.trim() ? 1 : 0.6
+                                    }}
+                                  >
+                                    送信
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
                             {item.replies && item.replies.length > 0 && (
                               <div style={{marginLeft: '20px', marginTop: '16px', paddingLeft: '16px', borderLeft: '1px solid #e9ecef'}}>
                                 {item.replies.map((reply) => (
@@ -2152,8 +2264,6 @@
                                           }}
                                           className="action-item"
                                           style={{
-                                            color: '#22543d',
-                                            border: '1px solid #c6f6d5',
                                             margin: '0 0 6px 0'
                                           }}
                                         >
@@ -2166,8 +2276,6 @@
                                           }}
                                           className="action-item"
                                           style={{
-                                            color: '#742a2a',
-                                            border: '1px solid #fed7d7',
                                             margin: '0'
                                           }}
                                         >

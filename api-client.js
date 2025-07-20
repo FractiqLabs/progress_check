@@ -417,8 +417,16 @@ class APIClient {
       let authorName = 'ローカルユーザー';
       try {
         if (this.token) {
-          const payload = JSON.parse(atob(this.token.split('.')[1]));
-          authorName = payload.name || payload.username || 'ローカルユーザー';
+          // トークンがJWT形式（3つの.で区切られた部分）かシンプルな形式かを判断
+          if (this.token.includes('.') && this.token.split('.').length === 3) {
+            // JWT形式の場合
+            const payload = JSON.parse(atob(this.token.split('.')[1]));
+            authorName = payload.name || payload.username || 'ローカルユーザー';
+          } else {
+            // シンプルなbase64エンコード形式の場合
+            const payload = JSON.parse(atob(this.token));
+            authorName = payload.name || payload.username || 'ローカルユーザー';
+          }
         }
       } catch (error) {
         console.warn('Failed to parse token for author name:', error);

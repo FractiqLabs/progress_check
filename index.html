@@ -1703,15 +1703,45 @@
 
               const updatedTimeline = currentApplicant.timeline.filter(post => post.id !== deletingPostId);
 
-              // Firestoreに保存
+              // 削除後の最新アクション投稿からステータスを決定
+              const latestActionPost = updatedTimeline
+                .filter(post => post.action)
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+
+              const statusMapping = {
+                '申込書受領': '申込書受領',
+                '実調日程調整中': '実調日程調整中',
+                '実調完了': '実調完了',
+                '健康診断書依頼': '健康診断書待ち',
+                '健康診断書受領': '健康診断書受領',
+                '判定会議中': '判定会議中',
+                '入居決定': '入居決定',
+                '入居不可': '入居不可',
+                '入居日調整中': '入居日調整中',
+                '書類送付済': '書類送付済',
+                '入居準備完了': '入居準備完了',
+                '入居完了': '入居完了',
+                'キャンセル': 'キャンセル'
+              };
+
+              const newStatus = latestActionPost && statusMapping[latestActionPost.action] 
+                ? statusMapping[latestActionPost.action]
+                : '申込書受領'; // デフォルトステータス
+
+              // Firestoreに保存（タイムラインとステータス両方更新）
               await apiClient.updateFirestoreDocument('applicants', selectedApplicant.id, {
-                timeline: updatedTimeline
+                timeline: updatedTimeline,
+                status: newStatus
               });
 
               // ローカル状態を更新
               const updatedApplicants = applicants.map(app => {
                 if (app.id === selectedApplicant.id) {
-                  return { ...app, timeline: updatedTimeline };
+                  return { 
+                    ...app, 
+                    timeline: updatedTimeline,
+                    status: newStatus
+                  };
                 }
                 return app;
               });

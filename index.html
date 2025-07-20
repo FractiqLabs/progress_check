@@ -575,6 +575,17 @@
             color: #adb5bd;
             cursor: not-allowed;
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         
         .modal-overlay {
             position: fixed;
@@ -1937,11 +1948,14 @@
                             const isCancelAction = action === 'キャンセル';
                             
                             return (
-                              <div key={index} style={{ position: 'relative' }}>
+                              <div 
+                                key={index} 
+                                style={{ position: 'relative' }}
+                                onMouseEnter={() => setHoveredAction(action)}
+                                onMouseLeave={() => setHoveredAction(null)}
+                              >
                                 <button
                                   onClick={() => isSubMenuAction ? null : handleStatusUpdate(action)}
-                                  onMouseEnter={() => setHoveredAction(action)}
-                                  onMouseLeave={() => setHoveredAction(null)}
                                   disabled={isCompleted}
                                   className="action-item"
                                   style={{
@@ -1969,7 +1983,8 @@
                                       borderRadius: '8px',
                                       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                                       zIndex: 1000,
-                                      marginTop: '4px'
+                                      marginTop: '4px',
+                                      animation: 'fadeIn 0.2s ease-in-out'
                                     }}
                                   >
                                     <button
@@ -1977,12 +1992,15 @@
                                       className="action-item"
                                       style={{
                                         width: '100%',
+                                        padding: '12px 16px',
                                         backgroundColor: '#ffffff',
                                         color: '#495057',
                                         border: 'none',
                                         borderBottom: '1px solid #dee2e6',
                                         borderRadius: '8px 8px 0 0',
-                                        margin: '0'
+                                        margin: '0',
+                                        fontSize: '14px',
+                                        textAlign: 'left'
                                       }}
                                     >
                                       入居決定
@@ -1992,11 +2010,14 @@
                                       className="action-item"
                                       style={{
                                         width: '100%',
+                                        padding: '12px 16px',
                                         backgroundColor: '#ffffff',
                                         color: '#495057',
                                         border: 'none',
                                         borderRadius: '0 0 8px 8px',
-                                        margin: '0'
+                                        margin: '0',
+                                        fontSize: '14px',
+                                        textAlign: 'left'
                                       }}
                                     >
                                       入居不可

@@ -2118,12 +2118,7 @@
                                 )}
                                 
                                 {isSubMenuAction && !isCompleted ? (
-                                  <div style={{
-                                    backgroundColor: isExpanded ? '#f8f9fa' : 'transparent',
-                                    borderRadius: '12px',
-                                    padding: isExpanded ? '8px 0' : '0',
-                                    transition: 'background-color 0.2s ease'
-                                  }}>
+                                  <div>
                                     <button
                                       onClick={() => setExpandedSubMenu(isExpanded ? null : action)}
                                       disabled={isCompleted || isDisabled}
@@ -2160,15 +2155,9 @@
                                           }}
                                           className="action-item"
                                           style={{
-                                            width: '100%',
-                                            padding: '10px 12px',
-                                            backgroundColor: '#f8fff9',
                                             color: '#22543d',
                                             border: '1px solid #c6f6d5',
-                                            borderRadius: '6px',
-                                            margin: '0 0 6px 0',
-                                            fontSize: '13px',
-                                            textAlign: 'left'
+                                            margin: '0 0 6px 0'
                                           }}
                                         >
                                           入居決定
@@ -2180,15 +2169,9 @@
                                           }}
                                           className="action-item"
                                           style={{
-                                            width: '100%',
-                                            padding: '10px 12px',
-                                            backgroundColor: '#fff5f5',
                                             color: '#742a2a',
                                             border: '1px solid #fed7d7',
-                                            borderRadius: '6px',
-                                            margin: '0',
-                                            fontSize: '13px',
-                                            textAlign: 'left'
+                                            margin: '0'
                                           }}
                                         >
                                           入居不可

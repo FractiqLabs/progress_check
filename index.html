@@ -2125,13 +2125,10 @@
                                 
                                 {isSubMenuAction && !isCompleted ? (
                                   <div style={{
-                                    border: '1px solid #dee2e6',
+                                    backgroundColor: isExpanded ? '#f8f9fa' : 'transparent',
                                     borderRadius: '12px',
-                                    backgroundColor: isExpanded ? '#f8f9fa' : '#ffffff',
-                                    padding: '8px',
-                                    transition: 'background-color 0.2s ease',
-                                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
-                                    minHeight: isExpanded ? 'auto' : '56px'
+                                    padding: isExpanded ? '8px 0' : '0',
+                                    transition: 'background-color 0.2s ease'
                                   }}>
                                     <button
                                       onClick={() => setExpandedSubMenu(isExpanded ? null : action)}
@@ -2150,7 +2147,7 @@
                                           {isCompleted ? '✓ ' : ''}{action}
                                         </span>
                                         <span style={{ fontSize: '12px', color: '#6c757d' }}>
-                                          […]
+                                          …
                                         </span>
                                       </div>
                                     </button>
@@ -2160,9 +2157,7 @@
                                         marginTop: '8px',
                                         animation: 'slideDown 0.2s ease-out',
                                         overflow: 'hidden',
-                                        paddingLeft: '16px',
-                                        borderLeft: '3px solid #2c3e50',
-                                        marginLeft: '8px'
+                                        paddingLeft: '16px'
                                       }}>
                                         <button
                                           onClick={() => {
@@ -2173,9 +2168,9 @@
                                           style={{
                                             width: '100%',
                                             padding: '10px 12px',
-                                            backgroundColor: '#ffffff',
-                                            color: '#495057',
-                                            border: '1px solid #e9ecef',
+                                            backgroundColor: '#f8fff9',
+                                            color: '#22543d',
+                                            border: '1px solid #c6f6d5',
                                             borderRadius: '6px',
                                             margin: '0 0 6px 0',
                                             fontSize: '13px',
@@ -2193,9 +2188,9 @@
                                           style={{
                                             width: '100%',
                                             padding: '10px 12px',
-                                            backgroundColor: '#ffffff',
-                                            color: '#495057',
-                                            border: '1px solid #e9ecef',
+                                            backgroundColor: '#fff5f5',
+                                            color: '#742a2a',
+                                            border: '1px solid #fed7d7',
                                             borderRadius: '6px',
                                             margin: '0',
                                             fontSize: '13px',

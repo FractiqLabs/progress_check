@@ -1848,10 +1848,10 @@
             // 「入居不可」が投稿されている場合の判定
             const hasRejection = completedActions.includes('入居不可');
             
-            // 「入居不可」後の全アクションを無効化対象とする
-            const rejectionIndex = allActions.indexOf('入居不可');
-            const actionsAfterRejection = rejectionIndex !== -1 ? 
-              allActions.slice(allActions.indexOf('入居日調整中')) : [];
+            // 「入居不可」後の全アクションを無効化対象とする（入居日調整中以降）
+            const actionsAfterRejection = hasRejection ? [
+              '入居日調整中', '書類送付済', '入居準備完了', '入居完了'
+            ] : [];
 
             return (
               <div className="container">

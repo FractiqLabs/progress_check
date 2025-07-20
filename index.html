@@ -591,7 +591,7 @@
             from {
                 opacity: 0;
                 max-height: 0;
-                transform: translateY(-10px);
+                transform: translateY(-4px);
             }
             to {
                 opacity: 1;
@@ -1767,6 +1767,14 @@
             const completedActions = selectedApplicant.timeline
               .filter(item => item.action)
               .map(item => item.action);
+            
+            // 「入居不可」が投稿されている場合の判定
+            const hasRejection = completedActions.includes('入居不可');
+            
+            // 「入居不可」後の全アクションを無効化対象とする
+            const rejectionIndex = allActions.indexOf('入居不可');
+            const actionsAfterRejection = rejectionIndex !== -1 ? 
+              allActions.slice(allActions.indexOf('入居日調整中')) : [];
 
             return (
               <div className="container">
@@ -1969,11 +1977,13 @@
                       {showActions ? (
                         <div className="action-list">
                           {allActions.map((action, index) => {
-                            const isCompleted = completedActions.includes(action);
+                            const isCompleted = completedActions.includes(action) || 
+                                              completedActions.includes('入居決定') && action === '入居可否';
                             const isSubMenuAction = action === '入居可否';
                             const isCancelAction = action === 'キャンセル';
                             const isExpanded = expandedSubMenu === action;
                             const showDivider = action === 'キャンセル';
+                            const isDisabledByRejection = hasRejection && actionsAfterRejection.includes(action);
                             
                             return (
                               <div key={index}>
@@ -2005,18 +2015,19 @@
                                     borderRadius: '12px',
                                     backgroundColor: isExpanded ? '#f8f9fa' : 'transparent',
                                     padding: isExpanded ? '8px' : '0',
-                                    transition: 'all 0.3s ease',
-                                    boxShadow: isExpanded ? '0 2px 8px rgba(0, 0, 0, 0.1)' : 'none'
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: isExpanded ? '0 1px 4px rgba(0, 0, 0, 0.05)' : 'none'
                                   }}>
                                     <button
                                       onClick={() => setExpandedSubMenu(isExpanded ? null : action)}
-                                      disabled={isCompleted}
+                                      disabled={isCompleted || isDisabledByRejection}
                                       className="action-item"
                                       style={{
-                                        backgroundColor: isExpanded ? '#ffffff' : (isCompleted ? '#f8f9fa' : '#ffffff'),
-                                        color: isCompleted ? '#adb5bd' : '#495057',
+                                        backgroundColor: isExpanded ? '#ffffff' : (isCompleted || isDisabledByRejection ? '#f8f9fa' : '#ffffff'),
+                                        color: isCompleted || isDisabledByRejection ? '#adb5bd' : '#495057',
                                         borderColor: isExpanded ? '#2c3e50' : '#dee2e6',
-                                        margin: '0'
+                                        margin: '0',
+                                        opacity: isDisabledByRejection && !isCompleted ? 0.6 : 1
                                       }}
                                     >
                                       {isCompleted ? '✓ ' : ''}
@@ -2029,7 +2040,7 @@
                                     {isExpanded && (
                                       <div style={{
                                         marginTop: '8px',
-                                        animation: 'slideDown 0.3s ease-out',
+                                        animation: 'slideDown 0.2s ease-out',
                                         overflow: 'hidden'
                                       }}>
                                         <button
@@ -2079,12 +2090,13 @@
                                   <div style={{ position: 'relative' }}>
                                     <button
                                       onClick={() => handleStatusUpdate(action)}
-                                      disabled={isCompleted}
+                                      disabled={isCompleted || isDisabledByRejection}
                                       className="action-item"
                                       style={{
-                                        backgroundColor: isCompleted ? '#f8f9fa' : '#ffffff',
-                                        color: isCompleted ? '#adb5bd' : (isCancelAction ? '#dc3545' : '#495057'),
-                                        borderColor: isCancelAction && !isCompleted ? '#dc3545' : '#dee2e6'
+                                        backgroundColor: isCompleted || isDisabledByRejection ? '#f8f9fa' : '#ffffff',
+                                        color: isCompleted || isDisabledByRejection ? '#adb5bd' : (isCancelAction ? '#dc3545' : '#495057'),
+                                        borderColor: isCancelAction && !isCompleted && !isDisabledByRejection ? '#dc3545' : '#dee2e6',
+                                        opacity: isDisabledByRejection && !isCompleted ? 0.6 : 1
                                       }}
                                     >
                                       {isCompleted ? '✓ ' : ''}{action}

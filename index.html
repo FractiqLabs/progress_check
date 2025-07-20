@@ -1046,6 +1046,7 @@
           const [showEditReplyModal, setShowEditReplyModal] = React.useState(false);
           const [showDeleteReplyModal, setShowDeleteReplyModal] = React.useState(false);
           const [showActions, setShowActions] = React.useState(true);
+          const [memoContent, setMemoContent] = React.useState('');
           const [formData, setFormData] = React.useState({
             surname: '',
             givenName: '',
@@ -1100,6 +1101,19 @@
               }
             }
           }, []);
+
+          // メモ内容の初期化
+          React.useEffect(() => {
+            const savedMemo = localStorage.getItem('shinchoku-memo');
+            if (savedMemo) {
+              setMemoContent(savedMemo);
+            }
+          }, []);
+
+          // メモ内容の自動保存
+          React.useEffect(() => {
+            localStorage.setItem('shinchoku-memo', memoContent);
+          }, [memoContent]);
 
           // 申込者データを読み込み
           const loadApplicants = async () => {
@@ -2314,7 +2328,9 @@
                             <textarea
                               placeholder="メモを入力してください..."
                               className="form-textarea"
-                              rows="4"
+                              rows="6"
+                              value={memoContent}
+                              onChange={(e) => setMemoContent(e.target.value)}
                               style={{
                                 width: '100%',
                                 marginBottom: '12px',

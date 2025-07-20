@@ -1875,13 +1875,18 @@
               .filter(item => item.action)
               .map(item => item.action);
             
-            // 「入居不可」が投稿されている場合の判定
+            // 「入居不可」「キャンセル」が投稿されている場合の判定
             const hasRejection = completedActions.includes('入居不可');
+            const hasCancel = completedActions.includes('キャンセル');
             
-            // 「入居不可」後の全アクションを無効化対象とする（入居日調整中以降）
+            // 「入居不可」時の無効化対象（入居可否を含む全後続アクション）
             const actionsAfterRejection = hasRejection ? [
-              '入居日調整中', '書類送付済', '入居準備完了', '入居完了'
+              '入居可否', '入居日調整中', '書類送付済', '入居準備完了', '入居完了'
             ] : [];
+            
+            // 「キャンセル」時の無効化対象（キャンセル以外の全アクション）
+            const actionsDisabledByCancel = hasCancel ? 
+              allActions.filter(action => action !== 'キャンセル') : [];
 
             return (
               <div className="container">
@@ -2091,6 +2096,8 @@
                             const isExpanded = expandedSubMenu === action;
                             const showDivider = action === 'キャンセル';
                             const isDisabledByRejection = hasRejection && actionsAfterRejection.includes(action);
+                            const isDisabledByCancel = hasCancel && actionsDisabledByCancel.includes(action);
+                            const isDisabled = isDisabledByRejection || isDisabledByCancel;
                             
                             return (
                               <div key={index}>
@@ -2127,14 +2134,14 @@
                                   }}>
                                     <button
                                       onClick={() => setExpandedSubMenu(isExpanded ? null : action)}
-                                      disabled={isCompleted || isDisabledByRejection}
+                                      disabled={isCompleted || isDisabled}
                                       className="action-item"
                                       style={{
-                                        backgroundColor: isExpanded ? '#ffffff' : (isCompleted || isDisabledByRejection ? '#f8f9fa' : '#ffffff'),
-                                        color: isCompleted || isDisabledByRejection ? '#adb5bd' : '#495057',
+                                        backgroundColor: isExpanded ? '#ffffff' : (isCompleted || isDisabled ? '#f8f9fa' : '#ffffff'),
+                                        color: isCompleted || isDisabled ? '#adb5bd' : '#495057',
                                         borderColor: isExpanded ? '#2c3e50' : '#dee2e6',
                                         margin: '0',
-                                        opacity: isDisabledByRejection && !isCompleted ? 0.6 : 1
+                                        opacity: isDisabled && !isCompleted ? 0.6 : 1
                                       }}
                                     >
                                       {isCompleted ? '✓ ' : ''}
@@ -2197,13 +2204,13 @@
                                   <div style={{ position: 'relative' }}>
                                     <button
                                       onClick={() => handleStatusUpdate(action)}
-                                      disabled={isCompleted || isDisabledByRejection}
+                                      disabled={isCompleted || isDisabled}
                                       className="action-item"
                                       style={{
-                                        backgroundColor: isCompleted || isDisabledByRejection ? '#f8f9fa' : '#ffffff',
-                                        color: isCompleted || isDisabledByRejection ? '#adb5bd' : (isCancelAction ? '#dc3545' : '#495057'),
-                                        borderColor: isCancelAction && !isCompleted && !isDisabledByRejection ? '#dc3545' : '#dee2e6',
-                                        opacity: isDisabledByRejection && !isCompleted ? 0.6 : 1
+                                        backgroundColor: isCompleted || isDisabled ? '#f8f9fa' : '#ffffff',
+                                        color: isCompleted || isDisabled ? '#adb5bd' : (isCancelAction ? '#dc3545' : '#495057'),
+                                        borderColor: isCancelAction && !isCompleted && !isDisabled ? '#dc3545' : '#dee2e6',
+                                        opacity: isDisabled && !isCompleted ? 0.6 : 1
                                       }}
                                     >
                                       {isCompleted ? '✓ ' : ''}{action}

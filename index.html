@@ -586,6 +586,32 @@
                 transform: translateY(0);
             }
         }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                max-height: 200px;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                max-height: 200px;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                max-height: 0;
+                transform: translateY(-10px);
+            }
+        }
         
         .modal-overlay {
             position: fixed;
@@ -1972,74 +1998,96 @@
                                     </div>
                                   </div>
                                 )}
-                                <div style={{ position: 'relative' }}>
-                                  <button
-                                    onClick={() => {
-                                      if (isSubMenuAction && !isCompleted) {
-                                        setExpandedSubMenu(isExpanded ? null : action);
-                                      } else {
-                                        handleStatusUpdate(action);
-                                      }
-                                    }}
-                                    disabled={isCompleted}
-                                    className="action-item"
-                                    style={{
-                                      backgroundColor: isCompleted ? '#f8f9fa' : '#ffffff',
-                                      color: isCompleted ? '#adb5bd' : (isCancelAction ? '#dc3545' : '#495057'),
-                                      borderColor: isCancelAction && !isCompleted ? '#dc3545' : '#dee2e6'
-                                    }}
-                                  >
-                                    {isCompleted ? '✓ ' : ''}
-                                    {isSubMenuAction && !isCompleted && (
-                                      <span style={{ marginRight: '8px', fontSize: '14px' }}>
+                                
+                                {isSubMenuAction && !isCompleted ? (
+                                  <div style={{
+                                    border: isExpanded ? '1px solid #dee2e6' : 'none',
+                                    borderRadius: '12px',
+                                    backgroundColor: isExpanded ? '#f8f9fa' : 'transparent',
+                                    padding: isExpanded ? '8px' : '0',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: isExpanded ? '0 2px 8px rgba(0, 0, 0, 0.1)' : 'none'
+                                  }}>
+                                    <button
+                                      onClick={() => setExpandedSubMenu(isExpanded ? null : action)}
+                                      disabled={isCompleted}
+                                      className="action-item"
+                                      style={{
+                                        backgroundColor: isExpanded ? '#ffffff' : (isCompleted ? '#f8f9fa' : '#ffffff'),
+                                        color: isCompleted ? '#adb5bd' : '#495057',
+                                        borderColor: isExpanded ? '#2c3e50' : '#dee2e6',
+                                        margin: '0'
+                                      }}
+                                    >
+                                      {isCompleted ? '✓ ' : ''}
+                                      <span style={{ marginRight: '8px', fontSize: '10px', color: '#000000' }}>
                                         {isExpanded ? '▽' : '▷'}
                                       </span>
-                                    )}
-                                    {action}
-                                  </button>
-                                </div>
-                                
-                                {isSubMenuAction && isExpanded && !isCompleted && (
-                                  <div style={{ marginTop: '8px' }}>
-                                    <button
-                                      onClick={() => {
-                                        handleStatusUpdate('入居決定');
-                                        setExpandedSubMenu(null);
-                                      }}
-                                      className="action-item"
-                                      style={{
-                                        width: '100%',
-                                        padding: '12px 16px',
-                                        backgroundColor: '#ffffff',
-                                        color: '#495057',
-                                        border: '1px solid #dee2e6',
-                                        borderRadius: '8px',
-                                        margin: '0 0 8px 0',
-                                        fontSize: '14px',
-                                        textAlign: 'left'
-                                      }}
-                                    >
-                                      入居決定
+                                      {action}
                                     </button>
+                                    
+                                    {isExpanded && (
+                                      <div style={{
+                                        marginTop: '8px',
+                                        animation: 'slideDown 0.3s ease-out',
+                                        overflow: 'hidden'
+                                      }}>
+                                        <button
+                                          onClick={() => {
+                                            handleStatusUpdate('入居決定');
+                                            setExpandedSubMenu(null);
+                                          }}
+                                          className="action-item"
+                                          style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            backgroundColor: '#ffffff',
+                                            color: '#495057',
+                                            border: '1px solid #dee2e6',
+                                            borderRadius: '8px',
+                                            margin: '0 0 8px 0',
+                                            fontSize: '14px',
+                                            textAlign: 'left'
+                                          }}
+                                        >
+                                          入居決定
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            handleStatusUpdate('入居不可');
+                                            setExpandedSubMenu(null);
+                                          }}
+                                          className="action-item"
+                                          style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            backgroundColor: '#ffffff',
+                                            color: '#495057',
+                                            border: '1px solid #dee2e6',
+                                            borderRadius: '8px',
+                                            margin: '0',
+                                            fontSize: '14px',
+                                            textAlign: 'left'
+                                          }}
+                                        >
+                                          入居不可
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div style={{ position: 'relative' }}>
                                     <button
-                                      onClick={() => {
-                                        handleStatusUpdate('入居不可');
-                                        setExpandedSubMenu(null);
-                                      }}
+                                      onClick={() => handleStatusUpdate(action)}
+                                      disabled={isCompleted}
                                       className="action-item"
                                       style={{
-                                        width: '100%',
-                                        padding: '12px 16px',
-                                        backgroundColor: '#ffffff',
-                                        color: '#495057',
-                                        border: '1px solid #dee2e6',
-                                        borderRadius: '8px',
-                                        margin: '0',
-                                        fontSize: '14px',
-                                        textAlign: 'left'
+                                        backgroundColor: isCompleted ? '#f8f9fa' : '#ffffff',
+                                        color: isCompleted ? '#adb5bd' : (isCancelAction ? '#dc3545' : '#495057'),
+                                        borderColor: isCancelAction && !isCompleted ? '#dc3545' : '#dee2e6'
                                       }}
                                     >
-                                      入居不可
+                                      {isCompleted ? '✓ ' : ''}{action}
                                     </button>
                                   </div>
                                 )}

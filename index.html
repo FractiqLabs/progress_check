@@ -2074,8 +2074,8 @@
                               )}
                             </div>
                             <div className="post-hover-actions">
-                                <button onClick={() => handleEditPost(item)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" /></button>
-                                <button onClick={() => handleDeletePost(item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" /></button>
+                                <button onClick={() => handleEditPost(item)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" style={{width: '18px', height: '18px'}} /></button>
+                                <button onClick={() => handleDeletePost(item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" style={{width: '18px', height: '18px'}} /></button>
                             </div>
                             <div className="post-content">{item.content}</div>
                             
@@ -2160,8 +2160,8 @@
                                 {item.replies.map((reply) => (
                                   <div key={reply.id} className="reply-item">
                                     <div className="post-hover-actions">
-                                      <button onClick={() => handleEditReply(reply, item.id)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" /></button>
-                                      <button onClick={() => handleDeleteReply(reply.id, item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" /></button>
+                                      <button onClick={() => handleEditReply(reply, item.id)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" style={{width: '18px', height: '18px'}} /></button>
+                                      <button onClick={() => handleDeleteReply(reply.id, item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" style={{width: '18px', height: '18px'}} /></button>
                                     </div>
                                     <div style={{fontSize: '14px', marginBottom: '4px'}}>
                                       <span style={{fontWeight: '500', color: '#2c3e50'}}>{reply.author}</span>
@@ -2355,7 +2355,7 @@
                         <button className="modal-close" onClick={() => setShowDeletePostModal(false)}>×</button>
                       </div>
                       <div className="modal-body">
-                        <div className="delete-icon"><img src="icons/patoranpu.png" alt="削除" /></div>
+                        <div className="delete-icon"><img src="icons/patoranpu.png" alt="削除" style={{width: '48px', height: '48px'}} /></div>
                         <div className="delete-message">
                           この投稿を削除しますか？
                         </div>
@@ -2410,7 +2410,7 @@
                         <button className="modal-close" onClick={() => setShowDeleteReplyModal(false)}>×</button>
                       </div>
                       <div className="modal-body">
-                        <div className="delete-icon"><img src="icons/patoranpu.png" alt="削除" /></div>
+                        <div className="delete-icon"><img src="icons/patoranpu.png" alt="削除" style={{width: '48px', height: '48px'}} /></div>
                         <div className="delete-message">
                           この返信を削除しますか？
                         </div>

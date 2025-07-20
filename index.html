@@ -2200,7 +2200,7 @@
                       >
                         {showActions ? (
                           <>
-                            <img src="icons/mouse.png" alt="閉じる" style={{width: '16px', height: '16px', marginRight: '4px'}} />
+                            <img src="icons/mouse.png" alt="閉じる" style={{width: '18px', height: '18px', marginRight: '4px', filter: 'brightness(0.7)'}} />
                             閉じる
                           </>
                         ) : '表示'}
@@ -2312,7 +2312,7 @@
                         </div>
                       ) : (
                         <div className="empty-state">
-                          <div className="empty-icon"><img src="icons/mouse.png" alt="アクション" style={{width: '64px', height: '64px'}} /></div>
+                          <div className="empty-icon"><img src="icons/mouse.png" alt="アクション" style={{width: '72px', height: '72px', filter: 'brightness(0.7)'}} /></div>
                           <div>「表示」ボタンでアクション一覧を確認できます</div>
                         </div>
                       )}
@@ -2525,15 +2525,13 @@
                                 className="btn btn-small btn-edit"
                                 onClick={(e) => handleEdit(applicant, e)}
                               >
-                                <img src="icons/enpitsu.png" alt="編集" style={{width: '16px', height: '16px', marginRight: '4px'}} />
-                                編集
+                                <img src="icons/enpitsu.png" alt="編集" style={{width: '20px', height: '20px'}} />
                               </button>
                               <button 
                                 className="btn btn-small btn-delete"
                                 onClick={(e) => handleDelete(applicant, e)}
                               >
-                                <img src="icons/gomibako.png" alt="削除" style={{width: '16px', height: '16px', marginRight: '4px'}} />
-                                削除
+                                <img src="icons/gomibako.png" alt="削除" style={{width: '20px', height: '20px'}} />
                               </button>
                             </div>
                           </td>

@@ -1079,11 +1079,11 @@
               try {
                 let payload;
                 try {
-                  // まずシンプルなbase64エンコード形式を試す
-                  payload = JSON.parse(atob(token));
-                } catch (error) {
-                  // 失敗したらJWT形式を試す
+                  // まずシンプルなbase64エンコード形式を試す（日本語文字対応）
                   payload = JSON.parse(decodeURIComponent(escape(atob(token))));
+                } catch (error) {
+                  // 失敗したら単純なatobを試す
+                  payload = JSON.parse(atob(token));
                 }
                 
                 if (payload.exp * 1000 > Date.now()) {

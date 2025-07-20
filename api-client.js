@@ -423,8 +423,8 @@ class APIClient {
             const payload = JSON.parse(atob(this.token.split('.')[1]));
             authorName = payload.name || payload.username || 'ローカルユーザー';
           } else {
-            // シンプルなbase64エンコード形式の場合
-            const payload = JSON.parse(atob(this.token));
+            // シンプルなbase64エンコード形式の場合（日本語文字対応）
+            const payload = JSON.parse(decodeURIComponent(escape(atob(this.token))));
             authorName = payload.name || payload.username || 'ローカルユーザー';
           }
         }

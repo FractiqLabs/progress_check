@@ -2002,7 +2002,7 @@
                   </div>
                   
                   <div className="info-section" style={{marginTop: '24px'}}>
-                    <h3>特記・メモ</h3>
+                    <h3>特記</h3>
                     <div className="info-item" style={{
                       backgroundColor: '#f8f9fa',
                       padding: '12px',
@@ -2013,7 +2013,7 @@
                       fontStyle: selectedApplicant.notes ? 'normal' : 'italic',
                       color: selectedApplicant.notes ? '#495057' : '#6c757d'
                     }}>
-                      {selectedApplicant.notes || 'メモはありません'}
+                      {selectedApplicant.notes || '特記事項はありません'}
                     </div>
                   </div>
                 </div>
@@ -2033,13 +2033,13 @@
                           {replyTo && <div style={{fontSize: '14px', color: '#6c757d', marginBottom: '8px'}}>
                             返信先: {selectedApplicant.timeline.find(t => t.id === replyTo)?.author}
                           </div>}
-                          {!postType && !replyTo && <div style={{fontWeight: '500', marginBottom: '8px', color: '#2c3e50'}}>メモを追加</div>}
+                          {!postType && !replyTo && <div style={{fontWeight: '500', marginBottom: '8px', color: '#2c3e50'}}>投稿を追加</div>}
                           <textarea
                             value={newPost}
                             onChange={(e) => setNewPost(e.target.value)}
                             className="form-textarea"
                             rows="3"
-                            placeholder="メモを入力するかアクションを追加..."
+                            placeholder="投稿を入力するかアクションを追加..."
                           />
                           <div className="form-actions">
                             <button
@@ -2189,6 +2189,45 @@
                           </div>
                         </div>
                       ))}
+                    </div>
+                  </div>
+
+                  <div className="memo-window" style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    right: '20px',
+                    width: '300px',
+                    backgroundColor: '#fff',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    zIndex: 1000
+                  }}>
+                    <div style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #eee',
+                      backgroundColor: '#f8f9fa',
+                      borderRadius: '8px 8px 0 0',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#495057'
+                    }}>
+                      タイムラインに投稿するほどでもないことは…ここにメモしてね
+                    </div>
+                    <div style={{ padding: '16px' }}>
+                      <textarea
+                        placeholder="メモを入力してください..."
+                        style={{
+                          width: '100%',
+                          minHeight: '80px',
+                          padding: '8px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          resize: 'none',
+                          fontSize: '14px',
+                          outline: 'none'
+                        }}
+                      />
                     </div>
                   </div>
 
@@ -2711,14 +2750,14 @@
                           </select>
                         </div>
                         <div className="form-group">
-                          <label className="form-label">特記・メモ</label>
+                          <label className="form-label">特記</label>
                           <textarea
                             name="notes"
                             value={formData.notes}
                             onChange={handleInputChange}
                             className="form-textarea"
                             rows="3"
-                            placeholder="特記事項やメモを入力してください..."
+                            placeholder="特記事項を入力してください..."
                           />
                         </div>
                       </form>
@@ -2909,14 +2948,14 @@
                           </select>
                         </div>
                         <div className="form-group">
-                          <label className="form-label">特記・メモ</label>
+                          <label className="form-label">特記</label>
                           <textarea
                             name="notes"
                             value={formData.notes}
                             onChange={handleInputChange}
                             className="form-textarea"
                             rows="3"
-                            placeholder="特記事項やメモを入力してください..."
+                            placeholder="特記事項を入力してください..."
                           />
                         </div>
                       </form>

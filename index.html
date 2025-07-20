@@ -999,6 +999,7 @@
           const [showDeleteModal, setShowDeleteModal] = React.useState(false);
           const [editingApplicant, setEditingApplicant] = React.useState(null);
           const [hoveredAction, setHoveredAction] = React.useState(null);
+          const [expandedSubMenu, setExpandedSubMenu] = React.useState(null);
           const [deletingApplicant, setDeletingApplicant] = React.useState(null);
           const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
           const [applicants, setApplicants] = React.useState([]);
@@ -1943,62 +1944,55 @@
                         <div className="action-list">
                           {allActions.map((action, index) => {
                             const isCompleted = completedActions.includes(action);
-                            const isHovered = hoveredAction === action;
                             const isSubMenuAction = action === '入居可否';
                             const isCancelAction = action === 'キャンセル';
+                            const isExpanded = expandedSubMenu === action;
                             
                             return (
-                              <div 
-                                key={index} 
-                                style={{ position: 'relative' }}
-                                onMouseEnter={() => setHoveredAction(action)}
-                                onMouseLeave={() => setHoveredAction(null)}
-                              >
-                                <button
-                                  onClick={() => isSubMenuAction ? null : handleStatusUpdate(action)}
-                                  disabled={isCompleted}
-                                  className="action-item"
-                                  style={{
-                                    backgroundColor: isCompleted ? '#f8f9fa' : '#ffffff',
-                                    color: isCompleted ? '#adb5bd' : (isCancelAction ? '#dc3545' : '#495057'),
-                                    cursor: isSubMenuAction && !isCompleted ? 'pointer' : (isCompleted ? 'not-allowed' : 'pointer'),
-                                    borderColor: isCancelAction && !isCompleted ? '#dc3545' : '#dee2e6'
-                                  }}
-                                >
-                                  {isCompleted ? '✓ ' : ''}{action}
-                                  {isSubMenuAction && !isCompleted && (
-                                    <span style={{ marginLeft: '8px', fontSize: '12px' }}>▼</span>
-                                  )}
-                                </button>
-                                
-                                {isSubMenuAction && isHovered && !isCompleted && (
-                                  <div
+                              <div key={index}>
+                                <div style={{ position: 'relative' }}>
+                                  <button
+                                    onClick={() => {
+                                      if (isSubMenuAction && !isCompleted) {
+                                        setExpandedSubMenu(isExpanded ? null : action);
+                                      } else {
+                                        handleStatusUpdate(action);
+                                      }
+                                    }}
+                                    disabled={isCompleted}
+                                    className="action-item"
                                     style={{
-                                      position: 'absolute',
-                                      top: '100%',
-                                      left: '0',
-                                      right: '0',
-                                      backgroundColor: '#ffffff',
-                                      border: '1px solid #dee2e6',
-                                      borderRadius: '8px',
-                                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                                      zIndex: 1000,
-                                      marginTop: '4px',
-                                      animation: 'fadeIn 0.2s ease-in-out'
+                                      backgroundColor: isCompleted ? '#f8f9fa' : '#ffffff',
+                                      color: isCompleted ? '#adb5bd' : (isCancelAction ? '#dc3545' : '#495057'),
+                                      borderColor: isCancelAction && !isCompleted ? '#dc3545' : '#dee2e6'
                                     }}
                                   >
+                                    {isCompleted ? '✓ ' : ''}
+                                    {isSubMenuAction && !isCompleted && (
+                                      <span style={{ marginRight: '8px', fontSize: '14px' }}>
+                                        {isExpanded ? '▽' : '▷'}
+                                      </span>
+                                    )}
+                                    {action}
+                                  </button>
+                                </div>
+                                
+                                {isSubMenuAction && isExpanded && !isCompleted && (
+                                  <div style={{ marginTop: '8px' }}>
                                     <button
-                                      onClick={() => handleStatusUpdate('入居決定')}
+                                      onClick={() => {
+                                        handleStatusUpdate('入居決定');
+                                        setExpandedSubMenu(null);
+                                      }}
                                       className="action-item"
                                       style={{
                                         width: '100%',
                                         padding: '12px 16px',
                                         backgroundColor: '#ffffff',
                                         color: '#495057',
-                                        border: 'none',
-                                        borderBottom: '1px solid #dee2e6',
-                                        borderRadius: '8px 8px 0 0',
-                                        margin: '0',
+                                        border: '1px solid #dee2e6',
+                                        borderRadius: '8px',
+                                        margin: '0 0 8px 0',
                                         fontSize: '14px',
                                         textAlign: 'left'
                                       }}
@@ -2006,15 +2000,18 @@
                                       入居決定
                                     </button>
                                     <button
-                                      onClick={() => handleStatusUpdate('入居不可')}
+                                      onClick={() => {
+                                        handleStatusUpdate('入居不可');
+                                        setExpandedSubMenu(null);
+                                      }}
                                       className="action-item"
                                       style={{
                                         width: '100%',
                                         padding: '12px 16px',
                                         backgroundColor: '#ffffff',
                                         color: '#495057',
-                                        border: 'none',
-                                        borderRadius: '0 0 8px 8px',
+                                        border: '1px solid #dee2e6',
+                                        borderRadius: '8px',
                                         margin: '0',
                                         fontSize: '14px',
                                         textAlign: 'left'

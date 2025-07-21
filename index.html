@@ -2137,10 +2137,12 @@
                                 </span>
                               )}
                             </div>
-                            <div className="post-hover-actions">
+                            {item.author === currentUser?.name && (
+                              <div className="post-hover-actions">
                                 <button onClick={() => handleEditPost(item)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" style={{width: '18px', height: '18px'}} /></button>
                                 <button onClick={() => handleDeletePost(item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" style={{width: '18px', height: '18px'}} /></button>
-                            </div>
+                              </div>
+                            )}
                             <div className="post-content">{item.content}</div>
                             
                             <div className="post-actions">
@@ -2223,10 +2225,12 @@
                               <div style={{marginLeft: '20px', marginTop: '16px', paddingLeft: '16px', borderLeft: '1px solid #e9ecef'}}>
                                 {item.replies.map((reply) => (
                                   <div key={reply.id} className="reply-item">
-                                    <div className="post-hover-actions">
-                                      <button onClick={() => handleEditReply(reply, item.id)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" style={{width: '18px', height: '18px'}} /></button>
-                                      <button onClick={() => handleDeleteReply(reply.id, item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" style={{width: '18px', height: '18px'}} /></button>
-                                    </div>
+                                    {reply.author === currentUser?.name && (
+                                      <div className="post-hover-actions">
+                                        <button onClick={() => handleEditReply(reply, item.id)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" style={{width: '18px', height: '18px'}} /></button>
+                                        <button onClick={() => handleDeleteReply(reply.id, item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" style={{width: '18px', height: '18px'}} /></button>
+                                      </div>
+                                    )}
                                     <div style={{fontSize: '14px', marginBottom: '4px'}}>
                                       <span style={{fontWeight: '500', color: '#2c3e50'}}>{reply.author}</span>
                                       <span style={{color: '#6c757d', marginLeft: '8px'}}>

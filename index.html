@@ -1423,7 +1423,8 @@
                 careManagerName: formData.careManagerName,
                 cmContact: formData.cmContact,
                 assignee: formData.assignee,
-                notes: formData.notes
+                notes: formData.notes,
+                memo: editingApplicant.memo || ''
               };
 
               await apiClient.updateApplicant(editingApplicant.id, applicantData);
@@ -1487,7 +1488,8 @@
                 careManagerName: formData.careManagerName,
                 cmContact: formData.cmContact,
                 assignee: formData.assignee || '担当者未定',
-                notes: formData.notes
+                notes: formData.notes,
+                memo: ''
               };
 
               await apiClient.createApplicant(applicantData);

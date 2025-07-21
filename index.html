@@ -1103,6 +1103,19 @@
             }
           }, []);
 
+          // メモ内容の初期化
+          React.useEffect(() => {
+            const savedMemo = localStorage.getItem('shinchoku-memo');
+            if (savedMemo) {
+              setMemoContent(savedMemo);
+            }
+          }, []);
+
+          // メモ内容の自動保存
+          React.useEffect(() => {
+            localStorage.setItem('shinchoku-memo', memoContent);
+          }, [memoContent]);
+
           // 申込者データを読み込み
           const loadApplicants = async () => {
             try {
@@ -2240,6 +2253,7 @@
                     </div>
                   </div>
 
+<<<<<<< HEAD
                   {selectedApplicant && (
                     <div className="memo-window" style={{
                       position: 'fixed',
@@ -2411,8 +2425,25 @@
                         </div>
                       ) : (
                         <div className="empty-state">
-                          <div className="empty-icon"><img src="icons/mouse.png" alt="アクション" style={{width: '120px', height: '120px', filter: 'brightness(0.1)'}} /></div>
-                          <div>「表示」ボタンでアクション一覧を確認できます</div>
+                          <div className="empty-icon"><img src="icons/mouse.png" alt="mouse" style={{width: '144px', height: '144px'}} /></div>
+                          <div style={{textAlign: 'left', marginBottom: '16px'}}>タイムラインに投稿するほどでもないことは…<br />ここにメモしてね</div>
+                          <div className="memo-window">
+                            <textarea
+                              placeholder="メモを入力してください..."
+                              className="form-textarea"
+                              rows="7"
+                              value={memoContent}
+                              onChange={(e) => setMemoContent(e.target.value)}
+                              style={{
+                                width: '100%',
+                                marginBottom: '12px',
+                                fontSize: '14px',
+                                border: '1px solid #dee2e6',
+                                borderRadius: '8px',
+                                padding: '12px'
+                              }}
+                            />
+                          </div>
                         </div>
                       )}
                     </div>

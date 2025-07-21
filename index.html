@@ -1046,6 +1046,8 @@
           const [showEditReplyModal, setShowEditReplyModal] = React.useState(false);
           const [showDeleteReplyModal, setShowDeleteReplyModal] = React.useState(false);
           const [showActions, setShowActions] = React.useState(true);
+          const [currentMemo, setCurrentMemo] = React.useState('');
+          const [isSavingMemo, setIsSavingMemo] = React.useState(false);
           const [formData, setFormData] = React.useState({
             surname: '',
             givenName: '',
@@ -1161,6 +1163,8 @@
             try {
               const data = await apiClient.getApplicant(applicantId);
               setSelectedApplicant(data);
+              // メモを読み込み（notesフィールドを使用）
+              setCurrentMemo(data.memo || data.notes || '');
             } catch (error) {
               console.error('Failed to load applicant detail:', error);
             }
@@ -1554,6 +1558,50 @@
             } catch (error) {
               console.error('Failed to send inline reply:', error);
               alert('返信の送信に失敗しました。');
+            }
+          };
+
+          // メモ保存機能
+          const handleSaveMemo = async () => {
+            if (!selectedApplicant || isSavingMemo) return;
+            
+            setIsSavingMemo(true);
+            try {
+              // 申込者データにメモを追加して更新
+              const updatedData = {
+                surname: selectedApplicant.surname,
+                givenName: selectedApplicant.given_name,
+                age: selectedApplicant.age,
+                careLevel: selectedApplicant.careLevel,
+                address: selectedApplicant.address,
+                kp: selectedApplicant.kp,
+                kpRelationship: selectedApplicant.kpRelationship,
+                kpContact: selectedApplicant.kpContact,
+                kpAddress: selectedApplicant.kpAddress,
+                careManager: selectedApplicant.careManager,
+                careManagerName: selectedApplicant.careManagerName,
+                cmContact: selectedApplicant.cmContact,
+                assignee: selectedApplicant.assignee,
+                notes: currentMemo
+              };
+              
+              await apiClient.updateApplicant(selectedApplicant.id, updatedData);
+              
+              // ローカル状態も更新
+              const updatedApplicant = { ...selectedApplicant, notes: currentMemo };
+              setSelectedApplicant(updatedApplicant);
+              
+              // 申込者リストも更新
+              const updatedApplicants = applicants.map(app => 
+                app.id === selectedApplicant.id ? { ...app, notes: currentMemo } : app
+              );
+              setApplicants(updatedApplicants);
+              
+            } catch (error) {
+              console.error('Failed to save memo:', error);
+              alert('メモの保存に失敗しました。');
+            } finally {
+              setIsSavingMemo(false);
             }
           };
 
@@ -2192,17 +2240,18 @@
                     </div>
                   </div>
 
-                  <div className="memo-window" style={{
-                    position: 'fixed',
-                    bottom: '20px',
-                    right: '20px',
-                    width: '300px',
-                    backgroundColor: '#fff',
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    zIndex: 1000
-                  }}>
+                  {selectedApplicant && (
+                    <div className="memo-window" style={{
+                      position: 'fixed',
+                      bottom: '20px',
+                      right: '20px',
+                      width: '300px',
+                      backgroundColor: '#fff',
+                      border: '1px solid #ddd',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      zIndex: 1000
+                    }}>
                     <div style={{
                       padding: '12px 16px',
                       borderBottom: '1px solid #eee',
@@ -2212,11 +2261,15 @@
                       fontWeight: '500',
                       color: '#495057'
                     }}>
-                      タイムラインに投稿するほどでもないことは…ここにメモしてね
+                      {selectedApplicant ? `${selectedApplicant.name}さんのメモ` : 'メモ'}
                     </div>
                     <div style={{ padding: '16px' }}>
                       <textarea
+                        value={currentMemo}
+                        onChange={(e) => setCurrentMemo(e.target.value)}
+                        onBlur={handleSaveMemo}
                         placeholder="メモを入力してください..."
+                        disabled={isSavingMemo}
                         style={{
                           width: '100%',
                           minHeight: '80px',
@@ -2225,11 +2278,23 @@
                           borderRadius: '4px',
                           resize: 'none',
                           fontSize: '14px',
-                          outline: 'none'
+                          outline: 'none',
+                          backgroundColor: isSavingMemo ? '#f8f9fa' : '#ffffff'
                         }}
                       />
+                      {isSavingMemo && (
+                        <div style={{
+                          fontSize: '12px',
+                          color: '#6c757d',
+                          marginTop: '4px',
+                          textAlign: 'center'
+                        }}>
+                          保存中...
+                        </div>
+                      )}
                     </div>
-                  </div>
+                    </div>
+                  )}
 
                   <div className="actions-panel">
                     <div className="actions-header">
@@ -2537,6 +2602,7 @@
                           key={applicant.id}
                           onClick={() => {
                             setSelectedApplicant(applicant);
+                            setCurrentMemo(applicant.memo || applicant.notes || '');
                             setCurrentView('detail');
                           }}
                         >

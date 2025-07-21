@@ -1107,14 +1107,14 @@
           React.useEffect(() => {
             const savedMemo = localStorage.getItem('shinchoku-memo');
             if (savedMemo) {
-              setMemoContent(savedMemo);
+              setCurrentMemo(savedMemo);
             }
           }, []);
 
           // メモ内容の自動保存
           React.useEffect(() => {
-            localStorage.setItem('shinchoku-memo', memoContent);
-          }, [memoContent]);
+            localStorage.setItem('shinchoku-memo', currentMemo);
+          }, [currentMemo]);
 
           // 申込者データを読み込み
           const loadApplicants = async () => {
@@ -2431,8 +2431,8 @@
                               placeholder="メモを入力してください..."
                               className="form-textarea"
                               rows="7"
-                              value={memoContent}
-                              onChange={(e) => setMemoContent(e.target.value)}
+                              value={currentMemo}
+                              onChange={(e) => setCurrentMemo(e.target.value)}
                               style={{
                                 width: '100%',
                                 marginBottom: '12px',

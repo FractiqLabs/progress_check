@@ -913,18 +913,23 @@
             background-image: url('images/background.png');
             background-size: cover;
             background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
             padding: 16px;
         }
         
         .login-card {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.95);
             border: 1px solid #e9ecef;
             border-radius: 16px;
             padding: 48px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 400px;
-            backdrop-filter: blur(10px);
+            max-width: 420px;
+            backdrop-filter: blur(15px);
+            position: relative;
+            z-index: 10;
+            transform: translateY(-20px);
         }
         
         .login-header {

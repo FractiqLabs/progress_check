@@ -354,6 +354,7 @@ class APIClient {
         cmContact: data.cmContact || '',
         assignee: data.assignee || '担当者未定',
         notes: data.notes || '',
+        memo: data.memo || '',
         status: '申込書受領',
         timeline: []
       };
@@ -384,7 +385,8 @@ class APIClient {
         careManagerName: data.careManagerName || '',
         cmContact: data.cmContact || '',
         assignee: data.assignee || '担当者未定',
-        notes: data.notes || ''
+        notes: data.notes || '',
+        memo: data.memo || ''
       };
 
       // setDocのmerge:trueにより、timelineや他の既存フィールドは自動的に保持される

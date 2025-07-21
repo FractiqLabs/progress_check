@@ -1176,8 +1176,8 @@
             try {
               const data = await apiClient.getApplicant(applicantId);
               setSelectedApplicant(data);
-              // メモを読み込み（notesフィールドを使用）
-              setCurrentMemo(data.memo || data.notes || '');
+              // メモを読み込み（memoフィールドを使用）
+              setCurrentMemo(data.memo || '');
             } catch (error) {
               console.error('Failed to load applicant detail:', error);
             }
@@ -1595,18 +1595,19 @@
                 careManagerName: selectedApplicant.careManagerName,
                 cmContact: selectedApplicant.cmContact,
                 assignee: selectedApplicant.assignee,
-                notes: currentMemo
+                notes: selectedApplicant.notes,
+                memo: currentMemo
               };
               
               await apiClient.updateApplicant(selectedApplicant.id, updatedData);
               
               // ローカル状態も更新
-              const updatedApplicant = { ...selectedApplicant, notes: currentMemo };
+              const updatedApplicant = { ...selectedApplicant, memo: currentMemo };
               setSelectedApplicant(updatedApplicant);
               
               // 申込者リストも更新
               const updatedApplicants = applicants.map(app => 
-                app.id === selectedApplicant.id ? { ...app, notes: currentMemo } : app
+                app.id === selectedApplicant.id ? { ...app, memo: currentMemo } : app
               );
               setApplicants(updatedApplicants);
               
@@ -2591,7 +2592,7 @@
                           key={applicant.id}
                           onClick={() => {
                             setSelectedApplicant(applicant);
-                            setCurrentMemo(applicant.memo || applicant.notes || '');
+                            setCurrentMemo(applicant.memo || '');
                             setCurrentView('detail');
                           }}
                         >

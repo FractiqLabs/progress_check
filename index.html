@@ -910,17 +910,25 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background-image: url('images/background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
             padding: 16px;
         }
         
         .login-card {
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.95);
             border: 1px solid #e9ecef;
             border-radius: 16px;
             padding: 48px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
+            backdrop-filter: blur(15px);
+            position: relative;
+            z-index: 10;
+            transform: translateY(-20px);
         }
         
         .login-header {
@@ -1045,7 +1053,8 @@
           const [showEditReplyModal, setShowEditReplyModal] = React.useState(false);
           const [showDeleteReplyModal, setShowDeleteReplyModal] = React.useState(false);
           const [showActions, setShowActions] = React.useState(true);
-          const [memoContent, setMemoContent] = React.useState('');
+          const [currentMemo, setCurrentMemo] = React.useState('');
+          const [isSavingMemo, setIsSavingMemo] = React.useState(false);
           const [formData, setFormData] = React.useState({
             surname: '',
             givenName: '',
@@ -1105,14 +1114,14 @@
           React.useEffect(() => {
             const savedMemo = localStorage.getItem('shinchoku-memo');
             if (savedMemo) {
-              setMemoContent(savedMemo);
+              setCurrentMemo(savedMemo);
             }
           }, []);
 
           // メモ内容の自動保存
           React.useEffect(() => {
-            localStorage.setItem('shinchoku-memo', memoContent);
-          }, [memoContent]);
+            localStorage.setItem('shinchoku-memo', currentMemo);
+          }, [currentMemo]);
 
           // 申込者データを読み込み
           const loadApplicants = async () => {
@@ -1174,6 +1183,8 @@
             try {
               const data = await apiClient.getApplicant(applicantId);
               setSelectedApplicant(data);
+              // メモを読み込み（memoフィールドを使用）
+              setCurrentMemo(data.memo || '');
             } catch (error) {
               console.error('Failed to load applicant detail:', error);
             }
@@ -1419,7 +1430,8 @@
                 careManagerName: formData.careManagerName,
                 cmContact: formData.cmContact,
                 assignee: formData.assignee,
-                notes: formData.notes
+                notes: formData.notes,
+                memo: editingApplicant.memo || ''
               };
 
               await apiClient.updateApplicant(editingApplicant.id, applicantData);
@@ -1483,7 +1495,8 @@
                 careManagerName: formData.careManagerName,
                 cmContact: formData.cmContact,
                 assignee: formData.assignee || '担当者未定',
-                notes: formData.notes
+                notes: formData.notes,
+                memo: ''
               };
 
               await apiClient.createApplicant(applicantData);
@@ -1567,6 +1580,51 @@
             } catch (error) {
               console.error('Failed to send inline reply:', error);
               alert('返信の送信に失敗しました。');
+            }
+          };
+
+          // メモ保存機能
+          const handleSaveMemo = async () => {
+            if (!selectedApplicant || isSavingMemo) return;
+            
+            setIsSavingMemo(true);
+            try {
+              // 申込者データにメモを追加して更新
+              const updatedData = {
+                surname: selectedApplicant.surname,
+                givenName: selectedApplicant.given_name,
+                age: selectedApplicant.age,
+                careLevel: selectedApplicant.careLevel,
+                address: selectedApplicant.address,
+                kp: selectedApplicant.kp,
+                kpRelationship: selectedApplicant.kpRelationship,
+                kpContact: selectedApplicant.kpContact,
+                kpAddress: selectedApplicant.kpAddress,
+                careManager: selectedApplicant.careManager,
+                careManagerName: selectedApplicant.careManagerName,
+                cmContact: selectedApplicant.cmContact,
+                assignee: selectedApplicant.assignee,
+                notes: selectedApplicant.notes,
+                memo: currentMemo
+              };
+              
+              await apiClient.updateApplicant(selectedApplicant.id, updatedData);
+              
+              // ローカル状態も更新
+              const updatedApplicant = { ...selectedApplicant, memo: currentMemo };
+              setSelectedApplicant(updatedApplicant);
+              
+              // 申込者リストも更新
+              const updatedApplicants = applicants.map(app => 
+                app.id === selectedApplicant.id ? { ...app, memo: currentMemo } : app
+              );
+              setApplicants(updatedApplicants);
+              
+            } catch (error) {
+              console.error('Failed to save memo:', error);
+              alert('メモの保存に失敗しました。');
+            } finally {
+              setIsSavingMemo(false);
             }
           };
 
@@ -2086,10 +2144,12 @@
                                 </span>
                               )}
                             </div>
-                            <div className="post-hover-actions">
+                            {item.author === currentUser?.name && (
+                              <div className="post-hover-actions">
                                 <button onClick={() => handleEditPost(item)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" style={{width: '18px', height: '18px'}} /></button>
                                 <button onClick={() => handleDeletePost(item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" style={{width: '18px', height: '18px'}} /></button>
-                            </div>
+                              </div>
+                            )}
                             <div className="post-content">{item.content}</div>
                             
                             <div className="post-actions">
@@ -2172,10 +2232,12 @@
                               <div style={{marginLeft: '20px', marginTop: '16px', paddingLeft: '16px', borderLeft: '1px solid #e9ecef'}}>
                                 {item.replies.map((reply) => (
                                   <div key={reply.id} className="reply-item">
-                                    <div className="post-hover-actions">
-                                      <button onClick={() => handleEditReply(reply, item.id)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" style={{width: '18px', height: '18px'}} /></button>
-                                      <button onClick={() => handleDeleteReply(reply.id, item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" style={{width: '18px', height: '18px'}} /></button>
-                                    </div>
+                                    {reply.author === currentUser?.name && (
+                                      <div className="post-hover-actions">
+                                        <button onClick={() => handleEditReply(reply, item.id)} className="btn-icon"><img src="icons/enpitsu.png" alt="編集" style={{width: '18px', height: '18px'}} /></button>
+                                        <button onClick={() => handleDeleteReply(reply.id, item.id)} className="btn-icon"><img src="icons/gomibako.png" alt="削除" style={{width: '18px', height: '18px'}} /></button>
+                                      </div>
+                                    )}
                                     <div style={{fontSize: '14px', marginBottom: '4px'}}>
                                       <span style={{fontWeight: '500', color: '#2c3e50'}}>{reply.author}</span>
                                       <span style={{color: '#6c757d', marginLeft: '8px'}}>
@@ -2322,23 +2384,37 @@
                       ) : (
                         <div className="empty-state">
                           <div className="empty-icon"><img src="icons/mouse.png" alt="mouse" style={{width: '144px', height: '144px'}} /></div>
-                          <div style={{textAlign: 'left', marginBottom: '16px'}}>タイムラインに投稿するほどでもないことは…<br />ここにメモしてね</div>
+                          <div style={{textAlign: 'left', marginBottom: '16px'}}>タイムラインに投稿するほどでもないことは…<br />ここでつぶやいてね</div>
                           <div className="memo-window">
                             <textarea
-                              placeholder="メモを入力してください..."
+                              placeholder="一時的なメモや備忘録など"
                               className="form-textarea"
                               rows="7"
-                              value={memoContent}
-                              onChange={(e) => setMemoContent(e.target.value)}
+                              value={currentMemo}
+                              onChange={(e) => setCurrentMemo(e.target.value)}
+                              onBlur={handleSaveMemo}
+                              disabled={isSavingMemo}
                               style={{
                                 width: '100%',
                                 marginBottom: '12px',
                                 fontSize: '14px',
                                 border: '1px solid #dee2e6',
                                 borderRadius: '8px',
-                                padding: '12px'
+                                padding: '12px',
+                                backgroundColor: isSavingMemo ? '#f8f9fa' : '#ffffff'
                               }}
                             />
+                            {isSavingMemo && (
+                              <div style={{
+                                fontSize: '12px',
+                                color: '#6c757d',
+                                marginTop: '-8px',
+                                marginBottom: '8px',
+                                textAlign: 'center'
+                              }}>
+                                保存中...
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
@@ -2529,6 +2605,7 @@
                           key={applicant.id}
                           onClick={() => {
                             setSelectedApplicant(applicant);
+                            setCurrentMemo(applicant.memo || '');
                             setCurrentView('detail');
                           }}
                         >

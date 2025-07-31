@@ -1031,6 +1031,19 @@
     
     <script type="text/babel">
         const CareFacilityApp = () => {
+          // 日付フォーマット関数
+          const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            
+            return `${year}/${month}/${day}`;
+          };
+
           const [isLoggedIn, setIsLoggedIn] = React.useState(false);
           const [currentUser, setCurrentUser] = React.useState(null);
           const [loginForm, setLoginForm] = React.useState({ id: '', password: '' });
@@ -2073,7 +2086,7 @@
                   <div className="detail-info">
                     <div className="info-section">
                       <h3>基本情報</h3>
-                      <div className="info-item">申込日: {selectedApplicant.applicationDate}</div>
+                      <div className="info-item">申込日: {formatDate(selectedApplicant.applicationDate)}</div>
                       {selectedApplicant.assignee && <div className="info-item">担当者: {selectedApplicant.assignee}</div>}
                       {selectedApplicant.address && <div className="info-item">住所: {selectedApplicant.address}</div>}
                     </div>
@@ -2628,7 +2641,7 @@
                             setCurrentView('detail');
                           }}
                         >
-                          <td>{applicant.applicationDate}</td>
+                          <td>{formatDate(applicant.applicationDate)}</td>
                           <td style={{fontWeight: '500', color: '#2c3e50'}}>{applicant.name}</td>
                           <td>{applicant.age}歳</td>
                           <td>{applicant.careLevel}</td>
@@ -2838,7 +2851,7 @@
                           </select>
                         </div>
                         <div className="form-group">
-                          <label className="form-label">申し込み日</label>
+                          <label className="form-label">申込日</label>
                           <input
                             type="date"
                             name="applicationDate"
@@ -3047,7 +3060,7 @@
                           </select>
                         </div>
                         <div className="form-group">
-                          <label className="form-label">申し込み日</label>
+                          <label className="form-label">申込日</label>
                           <input
                             type="date"
                             name="applicationDate"

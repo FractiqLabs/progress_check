@@ -267,32 +267,62 @@ class APIClient {
   // 申込者関連
   async getApplicants() {
     try {
-      const applicants = await this.getFirestoreCollection('applicants');
+      // サーバーAPIから申込者データを取得
+      const response = await fetch('/api/applicants', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`
+        }
+      });
       
-      // 各申込者のステータスを最新のタイムライン投稿のアクションと同期
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const applicants = await response.json();
+      
+      // application_dateをapplicationDateにマッピング
       return applicants.map(applicant => {
         const latestTimelineAction = this.getLatestTimelineAction(applicant.timeline);
         const syncedStatus = this.syncStatusWithTimeline(applicant.status, latestTimelineAction);
         
         return {
           ...applicant,
+          applicationDate: applicant.application_date,
           status: syncedStatus
         };
       });
     } catch (error) {
-      console.error('Failed to get applicants:', error);
-      const fallbackData = this.getLocalStorageFallback();
+      console.error('Failed to get applicants from server, trying Firestore:', error);
       
-      // フォールバックデータでも同じ同期処理を適用
-      return fallbackData.map(applicant => {
-        const latestTimelineAction = this.getLatestTimelineAction(applicant.timeline);
-        const syncedStatus = this.syncStatusWithTimeline(applicant.status, latestTimelineAction);
+      // フォールバックとしてFirestoreを使用
+      try {
+        const applicants = await this.getFirestoreCollection('applicants');
         
-        return {
-          ...applicant,
-          status: syncedStatus
-        };
-      });
+        return applicants.map(applicant => {
+          const latestTimelineAction = this.getLatestTimelineAction(applicant.timeline);
+          const syncedStatus = this.syncStatusWithTimeline(applicant.status, latestTimelineAction);
+          
+          return {
+            ...applicant,
+            status: syncedStatus
+          };
+        });
+      } catch (firestoreError) {
+        console.error('Firestore fallback also failed:', firestoreError);
+        const fallbackData = this.getLocalStorageFallback();
+        
+        // フォールバックデータでも同じ同期処理を適用
+        return fallbackData.map(applicant => {
+          const latestTimelineAction = this.getLatestTimelineAction(applicant.timeline);
+          const syncedStatus = this.syncStatusWithTimeline(applicant.status, latestTimelineAction);
+          
+          return {
+            ...applicant,
+            status: syncedStatus
+          };
+        });
+      }
     }
   }
 

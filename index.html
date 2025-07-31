@@ -711,6 +711,19 @@
             border-color: #2c3e50;
             box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
         }
+
+        .date-input {
+            cursor: pointer;
+        }
+        
+        .date-input::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .date-input::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
         
         .form-row {
             display: grid;
@@ -1070,6 +1083,7 @@
             careManagerName: '',
             cmContact: '',
             assignee: '',
+            applicationDate: '',
             notes: ''
           });
 
@@ -1398,6 +1412,7 @@
               careManagerName: applicant.careManagerName || '',
               cmContact: applicant.cmContact,
               assignee: applicant.assignee,
+              applicationDate: applicant.applicationDate || '',
               notes: applicant.notes || ''
             });
             setShowEditModal(true);
@@ -1431,6 +1446,7 @@
                 careManagerName: formData.careManagerName,
                 cmContact: formData.cmContact,
                 assignee: formData.assignee,
+                applicationDate: formData.applicationDate,
                 notes: formData.notes,
                 memo: editingApplicant.memo || ''
               };
@@ -1452,6 +1468,7 @@
                 careManagerName: '',
                 cmContact: '',
                 assignee: '',
+                applicationDate: '',
                 notes: ''
               });
               setEditingApplicant(null);
@@ -1496,6 +1513,7 @@
                 careManagerName: formData.careManagerName,
                 cmContact: formData.cmContact,
                 assignee: formData.assignee || '担当者未定',
+                applicationDate: formData.applicationDate,
                 notes: formData.notes,
                 memo: ''
               };
@@ -1517,6 +1535,7 @@
                 careManagerName: '',
                 cmContact: '',
                 assignee: '',
+                applicationDate: '',
                 notes: ''
               });
               setShowModal(false);
@@ -2820,6 +2839,17 @@
                           </select>
                         </div>
                         <div className="form-group">
+                          <label className="form-label">申し込み日</label>
+                          <input
+                            type="date"
+                            name="applicationDate"
+                            value={formData.applicationDate}
+                            onChange={handleInputChange}
+                            className="form-input date-input"
+                            onClick={(e) => e.target.showPicker?.()}
+                          />
+                        </div>
+                        <div className="form-group">
                           <label className="form-label">特記</label>
                           <textarea
                             name="notes"
@@ -3016,6 +3046,17 @@
                             <option value="吉野　隼人">吉野　隼人</option>
                             <option value="田中　慎治">田中　慎治</option>
                           </select>
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">申し込み日</label>
+                          <input
+                            type="date"
+                            name="applicationDate"
+                            value={formData.applicationDate}
+                            onChange={handleInputChange}
+                            className="form-input date-input"
+                            onClick={(e) => e.target.showPicker?.()}
+                          />
                         </div>
                         <div className="form-group">
                           <label className="form-label">特記</label>

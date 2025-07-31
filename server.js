@@ -161,24 +161,23 @@ app.post('/api/applicants', authenticateToken, async (req, res) => {
     const {
       surname, givenName, age, careLevel, address, kp, kpRelationship,
       kpContact, kpAddress, careManager, careManagerName, cmContact,
-      assignee, notes
+      assignee, applicationDate, notes
     } = req.body;
 
     if (!surname || !givenName || !age || !careLevel) {
       return res.status(400).json({ error: '必須項目が不足しています' });
     }
 
-    const dateFunc = process.env.DB_TYPE === 'postgres' ? 'CURRENT_DATE' : "DATE('now')";
     const result = await db.run(`
       INSERT INTO applicants (
         surname, given_name, age, care_level, address, kp, kp_relationship,
         kp_contact, kp_address, care_manager, care_manager_name, cm_contact,
         assignee, notes, application_date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${dateFunc}) RETURNING id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
     `, [
       surname, givenName, age, careLevel, address, kp, kpRelationship,
       kpContact, kpAddress, careManager, careManagerName, cmContact,
-      assignee || '担当者未定', notes
+      assignee || '担当者未定', notes, applicationDate || new Date().toISOString().split('T')[0]
     ]);
 
     // リアルタイム同期: 新規申込者をすべてのクライアントに通知
@@ -202,7 +201,7 @@ app.put('/api/applicants/:id', authenticateToken, async (req, res) => {
     const {
       surname, givenName, age, careLevel, address, kp, kpRelationship,
       kpContact, kpAddress, careManager, careManagerName, cmContact,
-      assignee, notes
+      assignee, applicationDate, notes
     } = req.body;
 
     if (!surname || !givenName || !age || !careLevel) {
@@ -214,12 +213,12 @@ app.put('/api/applicants/:id', authenticateToken, async (req, res) => {
         surname = ?, given_name = ?, age = ?, care_level = ?, address = ?,
         kp = ?, kp_relationship = ?, kp_contact = ?, kp_address = ?,
         care_manager = ?, care_manager_name = ?, cm_contact = ?,
-        assignee = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+        assignee = ?, application_date = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `, [
       surname, givenName, age, careLevel, address, kp, kpRelationship,
       kpContact, kpAddress, careManager, careManagerName, cmContact,
-      assignee, notes, id
+      assignee, applicationDate, notes, id
     ]);
 
     if (result.changes === 0) {

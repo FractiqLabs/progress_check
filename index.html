@@ -1033,7 +1033,7 @@
         const CareFacilityApp = () => {
           // 日付フォーマット関数
           const formatDate = (dateStr) => {
-            if (!dateStr) return '';
+            if (!dateStr) return 'カレンダーアイコンから入力';
             const date = new Date(dateStr);
             if (isNaN(date.getTime())) return dateStr;
             

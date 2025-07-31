@@ -367,64 +367,137 @@ class APIClient {
 
   async createApplicant(data) {
     try {
-      const applicantData = {
-        applicationDate: new Date().toISOString().split('T')[0],
-        name: `${data.surname}　${data.givenName}`,
-        surname: data.surname,
-        given_name: data.givenName,
-        age: data.age,
-        careLevel: data.careLevel,
-        address: data.address || '',
-        kp: data.kp || '',
-        kpRelationship: data.kpRelationship || '',
-        kpContact: data.kpContact || '',
-        kpAddress: data.kpAddress || '',
-        careManager: data.careManager || '',
-        careManagerName: data.careManagerName || '',
-        cmContact: data.cmContact || '',
-        assignee: data.assignee || '担当者未定',
-        notes: data.notes || '',
-        memo: data.memo || '',
-        status: '申込書受領',
-        timeline: []
-      };
+      // サーバーAPIを使用して申込者を作成
+      const response = await fetch('/api/applicants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`
+        },
+        body: JSON.stringify({
+          surname: data.surname,
+          givenName: data.givenName,
+          age: data.age,
+          careLevel: data.careLevel,
+          address: data.address || '',
+          kp: data.kp || '',
+          kpRelationship: data.kpRelationship || '',
+          kpContact: data.kpContact || '',
+          kpAddress: data.kpAddress || '',
+          careManager: data.careManager || '',
+          careManagerName: data.careManagerName || '',
+          cmContact: data.cmContact || '',
+          assignee: data.assignee || '担当者未定',
+          applicationDate: data.applicationDate || new Date().toISOString().split('T')[0],
+          notes: data.notes || ''
+        })
+      });
 
-      const result = await this.addFirestoreDocument('applicants', applicantData);
-      return { id: result.id, message: '申込者が登録されました' };
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
     } catch (error) {
-      console.error('Failed to create applicant:', error);
-      throw error;
+      console.error('Failed to create applicant via server, trying Firestore:', error);
+      
+      // フォールバックとしてFirestoreを使用
+      try {
+        const applicantData = {
+          applicationDate: data.applicationDate || new Date().toISOString().split('T')[0],
+          name: `${data.surname}　${data.givenName}`,
+          surname: data.surname,
+          given_name: data.givenName,
+          age: data.age,
+          careLevel: data.careLevel,
+          address: data.address || '',
+          kp: data.kp || '',
+          kpRelationship: data.kpRelationship || '',
+          kpContact: data.kpContact || '',
+          kpAddress: data.kpAddress || '',
+          careManager: data.careManager || '',
+          careManagerName: data.careManagerName || '',
+          cmContact: data.cmContact || '',
+          assignee: data.assignee || '担当者未定',
+          notes: data.notes || '',
+          memo: data.memo || '',
+          status: '申込書受領',
+          timeline: []
+        };
+
+        const result = await this.addFirestoreDocument('applicants', applicantData);
+        return { id: result.id, message: '申込者が登録されました' };
+      } catch (firestoreError) {
+        console.error('Firestore fallback also failed:', firestoreError);
+        throw error;
+      }
     }
   }
 
   async updateApplicant(id, data) {
     try {
-      // 更新対象の基本フィールドのみを送信（timelineは触らない）
-      const updateData = {
-        name: `${data.surname}　${data.givenName}`,
-        surname: data.surname,
-        given_name: data.givenName,
-        age: data.age,
-        careLevel: data.careLevel,
-        address: data.address || '',
-        kp: data.kp || '',
-        kpRelationship: data.kpRelationship || '',
-        kpContact: data.kpContact || '',
-        kpAddress: data.kpAddress || '',
-        careManager: data.careManager || '',
-        careManagerName: data.careManagerName || '',
-        cmContact: data.cmContact || '',
-        assignee: data.assignee || '担当者未定',
-        notes: data.notes || '',
-        memo: data.memo || ''
-      };
+      // サーバーAPIを使用して申込者を更新
+      const response = await fetch(`/api/applicants/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`
+        },
+        body: JSON.stringify({
+          surname: data.surname,
+          givenName: data.givenName,
+          age: data.age,
+          careLevel: data.careLevel,
+          address: data.address || '',
+          kp: data.kp || '',
+          kpRelationship: data.kpRelationship || '',
+          kpContact: data.kpContact || '',
+          kpAddress: data.kpAddress || '',
+          careManager: data.careManager || '',
+          careManagerName: data.careManagerName || '',
+          cmContact: data.cmContact || '',
+          assignee: data.assignee || '担当者未定',
+          applicationDate: data.applicationDate || '',
+          notes: data.notes || ''
+        })
+      });
 
-      // setDocのmerge:trueにより、timelineや他の既存フィールドは自動的に保持される
-      await this.updateFirestoreDocument('applicants', id, updateData);
-      return { message: '申込者情報が更新されました' };
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
     } catch (error) {
-      console.error('Failed to update applicant:', error);
-      throw error;
+      console.error('Failed to update applicant via server, trying Firestore:', error);
+      
+      // フォールバックとしてFirestoreを使用
+      try {
+        const updateData = {
+          name: `${data.surname}　${data.givenName}`,
+          surname: data.surname,
+          given_name: data.givenName,
+          age: data.age,
+          careLevel: data.careLevel,
+          address: data.address || '',
+          kp: data.kp || '',
+          kpRelationship: data.kpRelationship || '',
+          kpContact: data.kpContact || '',
+          kpAddress: data.kpAddress || '',
+          careManager: data.careManager || '',
+          careManagerName: data.careManagerName || '',
+          cmContact: data.cmContact || '',
+          assignee: data.assignee || '担当者未定',
+          applicationDate: data.applicationDate || '',
+          notes: data.notes || '',
+          memo: data.memo || ''
+        };
+
+        await this.updateFirestoreDocument('applicants', id, updateData);
+        return { message: '申込者情報が更新されました' };
+      } catch (firestoreError) {
+        console.error('Firestore fallback also failed:', firestoreError);
+        throw error;
+      }
     }
   }
 
